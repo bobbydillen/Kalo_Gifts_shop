@@ -1,0 +1,305 @@
+@import "tailwindcss";
+
+/* KALO Gifts theme. Colours and type come from the approved mock page. */
+@theme {
+  --color-night: #06120d;
+  --color-pine: #0b1d16;
+  --color-pine-2: #112a21;
+  --color-pine-3: #1b4436;
+  --color-cream: #f3ecdf;
+  --color-ink: #16130f;
+  --color-gold: #d4b373;
+  --color-gold-light: #f2deae;
+  --color-gold-deep: #a8823f;
+  --color-berry: #a3282a;
+  --color-berry-light: #c23a36;
+  --color-mist: rgb(243 236 223 / 0.66);
+  --color-faint: rgb(243 236 223 / 0.4);
+  --color-hair: rgb(243 236 223 / 0.11);
+  --color-hair-2: rgb(243 236 223 / 0.2);
+
+  --font-serif: var(--font-bodoni), "Didot", "Bodoni 72", Georgia, serif;
+  --font-sans: var(--font-manrope), "Helvetica Neue", Arial, sans-serif;
+
+  /* glide: large, calm movement. bounce: small things that should feel alive. */
+  --ease-glide: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --animate-marquee: marquee var(--marquee-time, 40s) linear infinite;
+
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+@layer base {
+  html {
+    background: var(--color-night);
+    color-scheme: dark;
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
+  }
+
+  body {
+    background: var(--color-night);
+    color: var(--color-cream);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+
+  /* one italic word per heading, in light gold */
+  h1 em,
+  h2 em,
+  h3 em {
+    font-style: italic;
+    color: var(--color-gold-light);
+  }
+
+  ::selection {
+    background: var(--color-gold);
+    color: var(--color-night);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold-light);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  /* Film grain over the whole page. */
+  .grain {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.07;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .kicker {
+    font-size: 0.75rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--color-gold);
+  }
+
+  /* Pill button. Hover lifts it, pressing pushes it in, release springs back. */
+  .btn {
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    overflow: hidden;
+    white-space: nowrap;
+    border-radius: 999px;
+    padding: 1.05rem 1.9rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      transform 0.5s var(--ease-bounce),
+      box-shadow 0.5s var(--ease-glide),
+      background-color 0.4s,
+      border-color 0.4s,
+      color 0.4s;
+  }
+  .btn:hover {
+    transform: translateY(-3px);
+  }
+  .btn:active {
+    transform: translateY(1px) scale(0.96);
+    transition-duration: 0.12s;
+    transition-timing-function: ease-out;
+  }
+  .btn .arrow {
+    transition: transform 0.5s var(--ease-bounce);
+  }
+  .btn:hover .arrow {
+    transform: translateX(5px);
+  }
+
+  .btn-gold {
+    color: #1a1208;
+    background: linear-gradient(135deg, #fff1c9, #e7c47d 45%, #b88a3e);
+    box-shadow:
+      0 10px 30px -10px rgb(231 196 125 / 0.55),
+      inset 0 1px 0 rgb(255 255 255 / 0.5);
+  }
+  .btn-gold:hover {
+    box-shadow:
+      0 18px 40px -10px rgb(231 196 125 / 0.75),
+      inset 0 1px 0 rgb(255 255 255 / 0.5);
+  }
+  /* light sweep across the gold button */
+  .btn-gold::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.55) 50%, transparent 65%);
+    transform: translateX(-120%);
+    transition: transform 0.9s var(--ease-glide);
+  }
+  .btn-gold:hover::after {
+    transform: translateX(120%);
+  }
+
+  .btn-outline {
+    color: var(--color-cream);
+    border: 1px solid var(--color-hair-2);
+    background: rgb(6 18 13 / 0.35);
+  }
+  .btn-outline:hover {
+    border-color: var(--color-gold);
+    color: var(--color-gold-light);
+  }
+
+  .btn-cream {
+    color: var(--color-night);
+    background: var(--color-cream);
+  }
+  .btn-cream:hover {
+    background: var(--color-gold-light);
+  }
+
+  .chip {
+    border-radius: 999px;
+    border: 1px solid var(--color-hair-2);
+    padding: 0.6rem 1.25rem;
+    font-size: 0.8125rem;
+    letter-spacing: 0.04em;
+    color: var(--color-mist);
+    cursor: pointer;
+    transition:
+      transform 0.45s var(--ease-bounce),
+      background-color 0.3s,
+      color 0.3s,
+      border-color 0.3s;
+  }
+  .chip:hover {
+    color: var(--color-cream);
+    border-color: var(--color-gold);
+    transform: translateY(-2px);
+  }
+  .chip:active {
+    transform: scale(0.94);
+  }
+  .chip[aria-pressed="true"] {
+    background: var(--color-cream);
+    border-color: var(--color-cream);
+    color: var(--color-night);
+  }
+
+  /* Entrance for content visible on arrival. Pure CSS, so it never waits on
+     JavaScript. On a first visit it holds until the logo intro has finished. */
+  .rise {
+    animation: rise 1.1s var(--ease-glide) both;
+    animation-delay: var(--rise-delay, 0ms);
+  }
+  html:not([data-intro]) .rise {
+    animation-delay: calc(3300ms + var(--rise-delay, 0ms));
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+  }
+
+  /* Hero line that swaps its last words: a vertical list that steps upward. */
+  .rotator {
+    display: inline-block;
+    height: 1.25em;
+    overflow: hidden;
+    vertical-align: bottom;
+  }
+  .rotator > span {
+    display: flex;
+    flex-direction: column;
+    animation: rotator 11s var(--ease-glide) infinite;
+  }
+  .rotator > span > span {
+    height: 1.25em;
+    white-space: nowrap;
+  }
+  @keyframes rotator {
+    0%, 20% { transform: translateY(0); }
+    25%, 45% { transform: translateY(-20%); }
+    50%, 70% { transform: translateY(-40%); }
+    75%, 95% { transform: translateY(-60%); }
+    100% { transform: translateY(-80%); }
+  }
+
+  /* Bag counter bump and the "added" toast. */
+  .bump {
+    animation: bump 0.6s var(--ease-bounce);
+  }
+  @keyframes bump {
+    40% { transform: scale(1.45); }
+  }
+  .toast-pop {
+    animation: toast-pop 0.6s var(--ease-bounce) both;
+  }
+  @keyframes toast-pop {
+    from { opacity: 0; transform: translateY(24px) scale(0.9); }
+  }
+
+  /* Sideways rows scroll without showing a scrollbar. */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Fade and rise into view on scroll. Set by the Reveal component. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 1s var(--ease-glide),
+      transform 1s var(--ease-glide);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  .reveal[data-shown="true"] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
