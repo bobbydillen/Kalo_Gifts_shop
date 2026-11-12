@@ -8,7 +8,7 @@ import { ClosingCta, Gifting } from "@/components/home/Sections";
 import { WordTicker } from "@/components/home/WordTicker";
 import { Button } from "@/components/ui/Button";
 import { Rise } from "@/components/ui/Rise";
-import { products } from "@/lib/catalog";
+import { christmasProducts } from "@/lib/catalog";
 import { seasonal } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -17,10 +17,6 @@ export const metadata: Metadata = {
     "Christmas gifts and hampers from KALO Gifts. Thoughtful, faith-inspired pieces, gift wrapped with a personal note.",
 };
 
-/** Products shown on the Christmas page: the Christmas edit plus every hamper. */
-const christmasItems = products.filter(
-  (p) => p.tag === "Christmas edit" || p.category === "hamper",
-);
 
 /**
  * The page Christmas searches, ads and social links land on.
@@ -38,7 +34,7 @@ export default function ChristmasPage() {
       <Collection
         index={2}
         label="Christmas gifts"
-        items={christmasItems}
+        items={christmasProducts()}
         title={
           <>
             The Christmas <em>edit</em>

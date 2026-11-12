@@ -11,9 +11,9 @@ export const site = {
 };
 
 const baseLinks = [
-  { label: "Gifts", href: "/#gifts" },
+  { label: "Gifts", href: "/gifts" },
   { label: "Loved ones", href: "/#loved-ones" },
-  { label: "Hampers", href: "/#hampers" },
+  { label: "Hampers", href: "/gifts/hampers" },
 ];
 
 /** Thin strip above the header. */

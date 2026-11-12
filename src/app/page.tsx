@@ -6,7 +6,7 @@ import { LovedOnes } from "@/components/home/LovedOnes";
 import { OrderByPill } from "@/components/home/OrderByPill";
 import { ClosingCta, Faq, Gifting, Story } from "@/components/home/Sections";
 import { WordTicker } from "@/components/home/WordTicker";
-import { products } from "@/lib/catalog";
+import { allProducts } from "@/lib/catalog";
 import { seasonal } from "@/lib/site";
 
 /**
@@ -26,7 +26,7 @@ export default function Home() {
       <Collection
         index={3}
         label="The collection"
-        items={products}
+        items={allProducts()}
         title={
           <>
             Everyday pieces with something to <em>say</em>

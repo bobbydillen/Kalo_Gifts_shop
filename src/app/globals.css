@@ -264,6 +264,26 @@
     from { opacity: 0; transform: translateY(24px) scale(0.9); }
   }
 
+  /* Centred pop-up panel (size guide and similar). */
+  .sheet-dialog {
+    margin: auto;
+    width: min(34rem, calc(100% - 1.5rem));
+    max-width: none;
+    max-height: calc(100dvh - 1.5rem);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-cream);
+    overflow: auto;
+  }
+  .sheet-dialog[open] {
+    animation: toast-pop 0.6s var(--ease-glide) both;
+  }
+  .sheet-dialog::backdrop {
+    background: rgb(3 10 7 / 0.72);
+    backdrop-filter: blur(8px);
+  }
+
   /* Sideways rows scroll without showing a scrollbar. */
   .no-scrollbar {
     scrollbar-width: none;

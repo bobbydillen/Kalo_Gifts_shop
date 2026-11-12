@@ -1,6 +1,6 @@
 # KALO Gifts website: build plan
 
-Status: confirmed 2026-11-11. Phases 1 (foundation) and 2 (home page) built; phase 3 (catalogue) is next.
+Status: confirmed 2026-11-11. Phases 1 and 2 built. Phase 3: collection, product and hamper pages built on a file-based catalogue; the database is deferred to phase 4, where orders need it.
 
 ## 1. What we are building
 

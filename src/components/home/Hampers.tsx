@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useBag } from "@/components/bag/BagProvider";
 import { ProductArt } from "@/components/product/ProductArt";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
-import { byId, formatPrice, hampers } from "@/lib/catalog";
+import { formatPrice, hamperContents, hampers as allHampers } from "@/lib/catalog";
+
+const hampers = allHampers();
 
 /** Featured hampers: the hamper on one side, what is inside it on the other. */
 export function Hampers({ index }: { index: number }) {
   const [active, setActive] = useState(0);
-  const { add } = useBag();
   const hamper = hampers[active];
-  const inside = (hamper.contains ?? []).map(byId);
+  const inside = hamperContents(hamper);
   const separately = inside.reduce((sum, p) => sum + p.price, 0);
 
   return (
@@ -28,7 +28,7 @@ export function Hampers({ index }: { index: number }) {
         <div className="mt-10 flex flex-wrap gap-3">
           {hampers.map((h, i) => (
             <button
-              key={h.id}
+              key={h.slug}
               type="button"
               className="chip"
               aria-pressed={active === i}
@@ -43,7 +43,7 @@ export function Hampers({ index }: { index: number }) {
       <Reveal delay={160}>
         <div className="mt-8 grid gap-5 lg:grid-cols-[1.1fr_1fr]">
           <div
-            key={hamper.id}
+            key={hamper.slug}
             className="toast-pop relative grid min-h-[20rem] place-items-center overflow-hidden rounded-[28px] border border-hair p-8 lg:min-h-[32rem]"
             style={{
               background: `radial-gradient(circle at 50% 45%, color-mix(in srgb, ${hamper.tint} 70%, transparent), var(--color-pine) 70%)`,
@@ -59,10 +59,10 @@ export function Hampers({ index }: { index: number }) {
             <h3 className="text-[clamp(2rem,3.4vw,3rem)]">{hamper.name}</h3>
             <p className="mt-3 text-mist">{hamper.line}</p>
 
-            <ul key={hamper.id} className="mt-7 flex-1 divide-y divide-hair border-y border-hair">
+            <ul key={hamper.slug} className="mt-7 flex-1 divide-y divide-hair border-y border-hair">
               {inside.map((item, i) => (
                 <li
-                  key={item.id}
+                  key={item.slug}
                   className="toast-pop flex items-center gap-4 py-4"
                   style={{ animationDelay: `${i * 90}ms` }}
                 >
@@ -89,8 +89,8 @@ export function Hampers({ index }: { index: number }) {
                   </span>
                 )}
               </p>
-              <Button arrow onClick={() => add(hamper.name)}>
-                Add hamper
+              <Button arrow href={`/product/${hamper.slug}`}>
+                View hamper
               </Button>
             </div>
           </div>

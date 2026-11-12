@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { ProductCard } from "@/components/product/ProductCard";
+import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { categoryLabels, type Category, type Product } from "@/lib/catalog";
 
@@ -52,11 +53,17 @@ export function Collection({
 
         <div className="mt-12 grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 lg:grid-cols-4">
           {shown.map((product, i) => (
-            <Reveal key={`${filter}-${product.id}`} delay={(i % 4) * 80}>
+            <Reveal key={`${filter}-${product.slug}`} delay={(i % 4) * 80}>
               <ProductCard product={product} />
             </Reveal>
           ))}
         </div>
+
+        <Reveal className="mt-14 text-center">
+          <Button href="/gifts" variant="outline" arrow>
+            View all gifts
+          </Button>
+        </Reveal>
       </div>
     </section>
   );
