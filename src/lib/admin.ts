@@ -46,6 +46,7 @@ export type OrderRow = {
   ship_state: string;
   ship_pincode: string;
   customer_note: string;
+  customer_email: string | null;
   tracking_note: string;
   created_at: string;
 };

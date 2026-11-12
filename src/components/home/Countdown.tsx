@@ -1,6 +1,6 @@
 "use client";
 
-import { seasonal } from "@/lib/site";
+import { useSettings } from "@/components/settings/SettingsProvider";
 import { timeLeft, useNow } from "@/lib/use-now";
 
 /** One digit that rolls to its new value like an odometer wheel. */
@@ -44,9 +44,10 @@ function Unit({ value, label }: { value: number; label: string }) {
  */
 export function Countdown() {
   const now = useNow();
-  if (!seasonal.countdown) return null;
+  const settings = useSettings();
+  if (!settings.countdown) return null;
 
-  const t = timeLeft(now, seasonal.christmasDate);
+  const t = timeLeft(now, settings.christmasDate);
   if (t.over) return null;
 
   const note = "until Christmas morning";

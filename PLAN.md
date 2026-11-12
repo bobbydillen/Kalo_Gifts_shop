@@ -1,6 +1,6 @@
 # KALO Gifts website: build plan
 
-Status: confirmed 2026-11-11. Phases 1 to 3 built. Phase 4 in progress: bag and gift options done; checkout form, WhatsApp login and payments to come. Phase 5 in progress: database live (Supabase, Mumbai); admin sign-in, overview, orders and products (with photos and stock) built, and the shop now reads products from the database; settings screen to come.
+Status: confirmed 2026-11-11. Phases 1 to 3 built. Phase 4: bag, gift options and checkout built (orders stay switched off in Settings until a way to pay is ready); customer accounts by emailed code built, waiting on Supabase email sending setup (phone code sign-in built but hidden); payments still to come. Phase 5: database and admin (overview, orders, products, settings) built; the shop reads products and settings from the database.
 
 ## 1. What we are building
 

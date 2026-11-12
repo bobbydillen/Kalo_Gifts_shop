@@ -5,12 +5,14 @@ import { useEffect, useRef } from "react";
 import { MAX_QTY, useBag } from "@/components/bag/BagProvider";
 import { GiftOptions } from "@/components/bag/GiftOptions";
 import { ProductArt } from "@/components/product/ProductArt";
+import { useSettings } from "@/components/settings/SettingsProvider";
 import { formatPrice } from "@/lib/catalog";
 
 /** Slide-in bag. Opens when something is added or the Bag button is pressed. */
 export function BagDrawer() {
   const { lines, count, subtotal, isOpen, setOpen, setQty, remove, setGift } = useBag();
   const dialog = useRef<HTMLDialogElement>(null);
+  const settings = useSettings();
 
   useEffect(() => {
     const el = dialog.current;
@@ -173,14 +175,24 @@ export function BagDrawer() {
               <span className="text-mist">Subtotal</span>
               <span className="font-serif text-3xl tabular-nums">{formatPrice(subtotal)}</span>
             </p>
-            <p className="mt-1 text-sm text-faint">Delivery is worked out at checkout.</p>
-            <button
-              type="button"
-              disabled
-              className="btn btn-gold mt-5 w-full disabled:pointer-events-none disabled:opacity-55 disabled:saturate-50"
-            >
-              {unavailable ? "Remove sold-out items" : "Checkout opens soon"}
-            </button>
+            <p className="mt-1 text-sm text-faint">
+              {settings.deliveryFee > 0
+                ? `Delivery ${formatPrice(settings.deliveryFee)} is added at checkout.`
+                : "Delivery is added at checkout if it applies."}
+            </p>
+            {settings.checkoutOpen && !unavailable ? (
+              <Link href="/checkout" onClick={() => setOpen(false)} className="btn btn-gold mt-5 w-full">
+                Checkout
+              </Link>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="btn btn-gold mt-5 w-full disabled:pointer-events-none disabled:opacity-55 disabled:saturate-50"
+              >
+                {unavailable ? "Remove sold-out items" : "Checkout opens soon"}
+              </button>
+            )}
           </div>
         )}
       </div>

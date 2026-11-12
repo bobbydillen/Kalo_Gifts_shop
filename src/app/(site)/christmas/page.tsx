@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Rise } from "@/components/ui/Rise";
 import { createCatalog } from "@/lib/catalog";
 import { getProducts } from "@/lib/catalog-data";
-import { seasonal } from "@/lib/site";
+import { getSettings } from "@/lib/settings-data";
 
 export const metadata: Metadata = {
   title: "Christmas gifts",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
  * keeps its place in search results for next year.
  */
 export default async function ChristmasPage() {
-  if (!seasonal.christmasHero) return <OutOfSeason />;
+  if (!(await getSettings()).christmasHero) return <OutOfSeason />;
   const { christmasProducts } = createCatalog(await getProducts());
 
   return (

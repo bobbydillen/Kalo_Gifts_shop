@@ -12,7 +12,8 @@ import {
 import { getServerSnapshot, getSnapshot, setLines, subscribe, type StoredLine } from "@/lib/bag-store";
 import { useCatalog } from "@/components/catalog/CatalogProvider";
 import type { Catalog, Product } from "@/lib/catalog";
-import { canGiftWrap, GIFT_NOTE_MAX, unitPrice } from "@/lib/gifting";
+import { useSettings } from "@/components/settings/SettingsProvider";
+import { canGiftWrap, unitPrice } from "@/lib/gifting";
 
 export const MAX_QTY = 10;
 
@@ -43,6 +44,7 @@ type Bag = {
   setQty: (id: string, qty: number) => void;
   remove: (id: string) => void;
   setGift: (id: string, gift: { wrap: boolean; note: string }) => void;
+  clear: () => void;
 };
 
 const noop = () => {};
@@ -56,6 +58,7 @@ const BagContext = createContext<Bag>({
   setQty: noop,
   remove: noop,
   setGift: noop,
+  clear: noop,
 });
 export const useBag = () => useContext(BagContext);
 
@@ -67,6 +70,8 @@ const limitFor = (catalog: Catalog, product: Product, colour?: string, size?: st
 
 export function BagProvider({ children }: { children: ReactNode }) {
   const catalog = useCatalog();
+  const settings = useSettings();
+  const maxChars = settings.giftCardMaxChars;
   const { productBySlug, stockFor } = catalog;
   const stored = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const [isOpen, setOpen] = useState(false);
@@ -78,10 +83,10 @@ export function BagProvider({ children }: { children: ReactNode }) {
         if (!product) return []; // product was removed from the catalogue
         const left = stockFor(product, line.colour, line.size);
         const qty = Math.max(1, Math.min(line.qty, MAX_QTY, left));
-        const unit = unitPrice(product, line);
+        const unit = unitPrice(product, line, settings);
         return [{ ...line, qty, product, left, unit, total: unit * qty }];
       }),
-    [stored, productBySlug, stockFor],
+    [stored, productBySlug, stockFor, settings],
   );
 
   const add = useCallback((input: AddInput) => {
@@ -91,7 +96,7 @@ export function BagProvider({ children }: { children: ReactNode }) {
     if (limit <= 0) return;
 
     const wrap = Boolean(input.wrap) && canGiftWrap(product);
-    const note = (input.note ?? "").trim().slice(0, GIFT_NOTE_MAX);
+    const note = (input.note ?? "").trim().slice(0, maxChars);
     const qty = Math.max(1, input.qty ?? 1);
 
     const current = getSnapshot();
@@ -114,7 +119,7 @@ export function BagProvider({ children }: { children: ReactNode }) {
       ]);
     }
     setOpen(true);
-  }, [catalog, productBySlug]);
+  }, [catalog, productBySlug, maxChars]);
 
   const setQty = useCallback((id: string, qty: number) => {
     setLines(
@@ -127,6 +132,8 @@ export function BagProvider({ children }: { children: ReactNode }) {
     );
   }, [catalog, productBySlug]);
 
+  const clear = useCallback(() => setLines([]), []);
+
   const remove = useCallback((id: string) => {
     setLines(getSnapshot().filter((l) => l.id !== id));
   }, []);
@@ -134,10 +141,10 @@ export function BagProvider({ children }: { children: ReactNode }) {
   const setGift = useCallback((id: string, gift: { wrap: boolean; note: string }) => {
     setLines(
       getSnapshot().map((l) =>
-        l.id === id ? { ...l, wrap: gift.wrap, note: gift.note.slice(0, GIFT_NOTE_MAX) } : l,
+        l.id === id ? { ...l, wrap: gift.wrap, note: gift.note.slice(0, maxChars) } : l,
       ),
     );
-  }, []);
+  }, [maxChars]);
 
   const value = useMemo<Bag>(
     () => ({
@@ -150,8 +157,9 @@ export function BagProvider({ children }: { children: ReactNode }) {
       setQty,
       remove,
       setGift,
+      clear,
     }),
-    [lines, isOpen, add, setQty, remove, setGift],
+    [lines, isOpen, add, setQty, remove, setGift, clear],
   );
 
   return <BagContext.Provider value={value}>{children}</BagContext.Provider>;

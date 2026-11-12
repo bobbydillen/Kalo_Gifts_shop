@@ -5,6 +5,7 @@ import { MAX_QTY, useBag } from "@/components/bag/BagProvider";
 import { GiftOptions } from "@/components/bag/GiftOptions";
 import { SizeGuide } from "@/components/product/SizeGuide";
 import { useCatalog } from "@/components/catalog/CatalogProvider";
+import { useSettings } from "@/components/settings/SettingsProvider";
 import { formatPrice, type Product } from "@/lib/catalog";
 import { unitPrice } from "@/lib/gifting";
 
@@ -14,6 +15,7 @@ const LOW_STOCK = 3; // at or below this, show how many are left
 export function ProductBuy({ product }: { product: Product }) {
   const { add } = useBag();
   const { stockFor } = useCatalog();
+  const settings = useSettings();
   const [colour, setColour] = useState(product.colours[0]?.name);
   const [size, setSize] = useState<string>();
   const [qty, setQty] = useState(1);
@@ -23,7 +25,7 @@ export function ProductBuy({ product }: { product: Product }) {
   const left = stockFor(product, colour, size);
   const soldOut = (!needsSize || size !== undefined) && left <= 0;
   const maxQty = Math.min(MAX_QTY, left);
-  const total = unitPrice(product, gift) * qty;
+  const total = unitPrice(product, gift, settings) * qty;
 
   const pickColour = (name: string) => {
     setColour(name);

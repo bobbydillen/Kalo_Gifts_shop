@@ -1,8 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { footerLinks, site } from "@/lib/site";
+import { getSettings } from "@/lib/settings-data";
+import { footerLinksFor, site } from "@/lib/site";
 
-export function Footer() {
+export async function Footer() {
+  const settings = await getSettings();
+  const footerLinks = footerLinksFor(settings.christmasHero, settings.customerLogin);
+
   return (
     <footer className="border-t border-hair bg-pine">
       <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr] lg:py-20">

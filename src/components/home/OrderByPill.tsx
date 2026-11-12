@@ -1,14 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { seasonal } from "@/lib/site";
+import { useSettings } from "@/components/settings/SettingsProvider";
 import { timeLeft, useNow } from "@/lib/use-now";
 
-const orderByLabel = new Intl.DateTimeFormat("en-IN", {
-  day: "numeric",
-  month: "short",
-  timeZone: "Asia/Kolkata",
-}).format(new Date(seasonal.orderByDate));
+const dayFormat = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" });
 
 /**
  * Sticky reminder of the last day to order for Christmas delivery.
@@ -16,8 +12,9 @@ const orderByLabel = new Intl.DateTimeFormat("en-IN", {
  */
 export function OrderByPill() {
   const now = useNow();
-  const t = timeLeft(now, seasonal.orderByDate);
-  if (!seasonal.orderByBanner || !t.ready || t.over) return null;
+  const settings = useSettings();
+  const t = timeLeft(now, settings.orderByDate);
+  if (!settings.orderByBanner || !t.ready || t.over) return null;
 
   const left = t.days > 0 ? `${t.days}d ${t.hours}h left` : `${t.hours}h ${t.mins}m left`;
 
@@ -28,7 +25,7 @@ export function OrderByPill() {
     >
       <span className="leading-tight">
         <span className="block text-[0.6875rem] uppercase tracking-[0.18em] text-gold-light">
-          Order by {orderByLabel}
+          Order by {dayFormat.format(new Date(settings.orderByDate))}
         </span>
         <span className="text-mist">for delivery before Christmas</span>
       </span>

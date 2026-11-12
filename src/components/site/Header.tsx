@@ -6,11 +6,14 @@ import { useEffect, useState } from "react";
 import { useBag } from "@/components/bag/BagProvider";
 import { Marquee } from "@/components/ui/Marquee";
 import { ScrollRibbon } from "@/components/ui/ScrollRibbon";
-import { announcements, navLinks } from "@/lib/site";
+import { useSettings } from "@/components/settings/SettingsProvider";
+import { announcements, navLinksFor } from "@/lib/site";
 
 export function Header() {
   const [open, setOpen] = useState(false);
   const { count, setOpen: openBag } = useBag();
+  const settings = useSettings();
+  const navLinks = navLinksFor(settings.christmasHero, settings.customerLogin);
 
   // Close the phone menu with Escape, and stop the page scrolling behind it.
   useEffect(() => {

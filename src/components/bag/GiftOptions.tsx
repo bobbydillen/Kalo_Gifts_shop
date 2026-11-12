@@ -2,7 +2,8 @@
 
 import { useId, useState } from "react";
 import { formatPrice, type Product } from "@/lib/catalog";
-import { canGiftWrap, GIFT_NOTE_MAX, GIFT_NOTE_PRICE, GIFT_WRAP_PRICE } from "@/lib/gifting";
+import { useSettings } from "@/components/settings/SettingsProvider";
+import { canGiftWrap } from "@/lib/gifting";
 
 type Gift = { wrap: boolean; note: string };
 
@@ -44,7 +45,7 @@ function Option({
 
 /**
  * Gift wrap and handwritten card choices. Used on the product page and for each
- * line in the bag. The card opens a box for the message, up to GIFT_NOTE_MAX characters.
+ * line in the bag. The card opens a box for the message, up to the limit set in the admin.
  */
 export function GiftOptions({
   product,
@@ -58,6 +59,7 @@ export function GiftOptions({
   onChange: (gift: Gift) => void;
 }) {
   const noteId = useId();
+  const { giftWrapPrice, giftCardPrice, giftCardMaxChars } = useSettings();
   const [cardOpen, setCardOpen] = useState(note.length > 0);
 
   return (
@@ -68,7 +70,7 @@ export function GiftOptions({
           onToggle={() => onChange({ wrap: !wrap, note })}
           title="Gift wrap"
           hint="Wrapped and ready to hand over"
-          price={GIFT_WRAP_PRICE}
+          price={giftWrapPrice}
         />
       )}
 
@@ -84,7 +86,7 @@ export function GiftOptions({
         }}
         title="Handwritten card"
         hint="We write your message by hand and tuck it inside"
-        price={GIFT_NOTE_PRICE}
+        price={giftCardPrice}
       />
 
       {cardOpen && (
@@ -95,16 +97,16 @@ export function GiftOptions({
           <textarea
             id={noteId}
             rows={4}
-            maxLength={GIFT_NOTE_MAX}
+            maxLength={giftCardMaxChars}
             value={note}
-            onChange={(e) => onChange({ wrap, note: e.target.value.slice(0, GIFT_NOTE_MAX) })}
+            onChange={(e) => onChange({ wrap, note: e.target.value.slice(0, giftCardMaxChars) })}
             placeholder="Write a few lines for them. For example: Thinking of you this Christmas."
             className="mt-2 block w-full resize-none rounded-xl border border-hair-2 bg-transparent p-3 font-serif text-lg italic leading-snug text-cream placeholder:text-faint focus:border-gold focus:outline-none"
           />
           <p className="mt-2 flex justify-between text-xs text-faint">
             <span>{note.trim() ? "" : `The card is added once you write a message.`}</span>
             <span aria-live="polite" className="tabular-nums">
-              {note.length}/{GIFT_NOTE_MAX}
+              {note.length}/{giftCardMaxChars}
             </span>
           </p>
         </div>

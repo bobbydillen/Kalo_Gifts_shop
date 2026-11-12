@@ -7,7 +7,7 @@ import { OrderByPill } from "@/components/home/OrderByPill";
 import { ClosingCta, Faq, Gifting, Story } from "@/components/home/Sections";
 import { WordTicker } from "@/components/home/WordTicker";
 import { getProducts } from "@/lib/catalog-data";
-import { seasonal } from "@/lib/site";
+import { getSettings } from "@/lib/settings-data";
 
 /**
  * Home page. The logo hero is always first. While the Christmas switch is on,
@@ -15,13 +15,13 @@ import { seasonal } from "@/lib/site";
  * it and the page closes up.
  */
 export default async function Home() {
-  const products = await getProducts();
+  const [products, settings] = await Promise.all([getProducts(), getSettings()]);
 
   return (
     <>
-      <LogoHero />
+      <LogoHero christmas={settings.christmasHero} />
       <WordTicker />
-      {seasonal.christmasHero && <ChristmasHero placement="section" />}
+      {settings.christmasHero && <ChristmasHero placement="section" />}
 
       <Hampers index={1} />
       <LovedOnes index={2} />

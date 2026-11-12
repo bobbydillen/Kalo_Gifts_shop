@@ -13,7 +13,6 @@ import {
   type OrderRow,
 } from "@/lib/admin";
 import { formatPrice } from "@/lib/catalog";
-import { GIFT_NOTE_PRICE, GIFT_WRAP_PRICE } from "@/lib/gifting";
 import { supabaseServer } from "@/lib/supabase/server";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -77,12 +76,12 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
                       <p className="mt-2 flex flex-wrap gap-2 text-xs">
                         {item.gift_wrap && (
                           <span className="rounded-full border border-gold/50 px-3 py-1 text-gold-light">
-                            Gift wrap (+{formatPrice(GIFT_WRAP_PRICE)} each)
+                            Gift wrap
                           </span>
                         )}
                         {item.card_message.trim() && (
                           <span className="rounded-full border border-gold/50 px-3 py-1 text-gold-light">
-                            Handwritten card (+{formatPrice(GIFT_NOTE_PRICE)} each)
+                            Handwritten card
                           </span>
                         )}
                       </p>
@@ -172,6 +171,7 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
             <p className="mt-4 text-lg">{order.ship_name}</p>
             <p className="mt-1 whitespace-pre-line text-mist">{address}</p>
             <p className="mt-3 text-mist">{order.ship_phone}</p>
+            {order.customer_email && <p className="text-mist">{order.customer_email}</p>}
             {order.customer_note && (
               <p className="mt-4 rounded-xl border border-hair-2 p-4 text-sm text-mist">
                 <span className="block text-xs uppercase tracking-[0.18em] text-faint">Note from the customer</span>

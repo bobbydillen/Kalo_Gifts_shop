@@ -1,14 +1,13 @@
 import { HeroLogo } from "@/components/home/HeroLogo";
 import { Button } from "@/components/ui/Button";
 import { Rise } from "@/components/ui/Rise";
-import { seasonal } from "@/lib/site";
 
 /**
  * Top of the home page, all year: the KALO logo and the brand line.
  * The logo plays its intro here on every load, except right after the loading
  * screen has played it (see HeroLogo).
  */
-export function LogoHero() {
+export function LogoHero({ christmas }: { christmas: boolean }) {
   return (
     <section className="relative overflow-hidden">
       <div
@@ -37,7 +36,7 @@ export function LogoHero() {
               <Button href="/#gifts" arrow>
                 Shop gifts
               </Button>
-              {seasonal.christmasHero ? (
+              {christmas ? (
                 <Button href="/christmas" variant="outline">
                   Christmas gifts
                 </Button>
