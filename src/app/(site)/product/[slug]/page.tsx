@@ -7,21 +7,17 @@ import { ProductBuy } from "@/components/product/ProductBuy";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { Rise } from "@/components/ui/Rise";
-import {
-  allProducts,
-  categoryOf,
-  formatPrice,
-  hamperContents,
-  productBySlug,
-  relatedTo,
-} from "@/lib/catalog";
+import { categoryOf, createCatalog, formatPrice } from "@/lib/catalog";
+import { getProducts } from "@/lib/catalog-data";
 
-export function generateStaticParams() {
-  return allProducts().map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  const products = await getProducts();
+  // an empty list is not allowed here, so a shop with no products still builds
+  return products.length ? products.map((p) => ({ slug: p.slug })) : [{ slug: "none" }];
 }
 
 export async function generateMetadata({ params }: PageProps<"/product/[slug]">): Promise<Metadata> {
-  const product = productBySlug((await params).slug);
+  const product = createCatalog(await getProducts()).productBySlug((await params).slug);
   return product ? { title: product.name, description: product.description } : {};
 }
 
@@ -35,12 +31,13 @@ export default function ProductPage({ params }: PageProps<"/product/[slug]">) {
 }
 
 async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">, "params">) {
-  const product = productBySlug((await params).slug);
+  const catalog = createCatalog(await getProducts());
+  const product = catalog.productBySlug((await params).slug);
   if (!product) notFound();
 
   const category = categoryOf(product);
-  const inside = hamperContents(product);
-  const related = relatedTo(product);
+  const inside = catalog.hamperContents(product);
+  const related = catalog.relatedTo(product);
 
   return (
     <>

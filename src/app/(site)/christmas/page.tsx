@@ -8,7 +8,8 @@ import { ClosingCta, Gifting } from "@/components/home/Sections";
 import { WordTicker } from "@/components/home/WordTicker";
 import { Button } from "@/components/ui/Button";
 import { Rise } from "@/components/ui/Rise";
-import { christmasProducts } from "@/lib/catalog";
+import { createCatalog } from "@/lib/catalog";
+import { getProducts } from "@/lib/catalog-data";
 import { seasonal } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -23,8 +24,9 @@ export const metadata: Metadata = {
  * Out of season the address stays alive with a short holding message, so it
  * keeps its place in search results for next year.
  */
-export default function ChristmasPage() {
+export default async function ChristmasPage() {
   if (!seasonal.christmasHero) return <OutOfSeason />;
+  const { christmasProducts } = createCatalog(await getProducts());
 
   return (
     <>

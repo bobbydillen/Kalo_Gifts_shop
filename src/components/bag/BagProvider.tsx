@@ -1,46 +1,158 @@
 "use client";
 
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
+import { getServerSnapshot, getSnapshot, setLines, subscribe, type StoredLine } from "@/lib/bag-store";
+import { useCatalog } from "@/components/catalog/CatalogProvider";
+import type { Catalog, Product } from "@/lib/catalog";
+import { canGiftWrap, GIFT_NOTE_MAX, unitPrice } from "@/lib/gifting";
 
-/**
- * Minimal bag for phase 2: it only counts items and confirms an add.
- * Phase 4 replaces this with the real bag (lines, quantities, drawer).
- */
-type Bag = { count: number; add: (name: string) => void };
+export const MAX_QTY = 10;
 
-const BagContext = createContext<Bag>({ count: 0, add: () => {} });
+/** A bag line with its product and prices worked out. */
+export type BagLine = StoredLine & {
+  product: Product;
+  unit: number; // price of one piece including gift options
+  total: number;
+  left: number; // units in stock for this variant (Infinity when not tracked)
+};
+
+type AddInput = {
+  slug: string;
+  colour?: string;
+  size?: string;
+  qty?: number;
+  wrap?: boolean;
+  note?: string;
+};
+
+type Bag = {
+  lines: BagLine[];
+  count: number;
+  subtotal: number;
+  isOpen: boolean;
+  setOpen: (open: boolean) => void;
+  add: (input: AddInput) => void;
+  setQty: (id: string, qty: number) => void;
+  remove: (id: string) => void;
+  setGift: (id: string, gift: { wrap: boolean; note: string }) => void;
+};
+
+const noop = () => {};
+const BagContext = createContext<Bag>({
+  lines: [],
+  count: 0,
+  subtotal: 0,
+  isOpen: false,
+  setOpen: noop,
+  add: noop,
+  setQty: noop,
+  remove: noop,
+  setGift: noop,
+});
 export const useBag = () => useContext(BagContext);
 
-export function BagProvider({ children }: { children: ReactNode }) {
-  const [count, setCount] = useState(0);
-  const [toast, setToast] = useState<{ id: number; name: string } | null>(null);
-  const timer = useRef<number | undefined>(undefined);
+const makeId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 
-  const add = useCallback((name: string) => {
-    setCount((c) => c + 1);
-    setToast({ id: Date.now(), name });
-    window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setToast(null), 2600);
+/** Most of one variant that can go in the bag: the cap, or what is in stock. */
+const limitFor = (catalog: Catalog, product: Product, colour?: string, size?: string) =>
+  Math.min(MAX_QTY, catalog.stockFor(product, colour, size));
+
+export function BagProvider({ children }: { children: ReactNode }) {
+  const catalog = useCatalog();
+  const { productBySlug, stockFor } = catalog;
+  const stored = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const [isOpen, setOpen] = useState(false);
+
+  const lines = useMemo<BagLine[]>(
+    () =>
+      stored.flatMap((line) => {
+        const product = productBySlug(line.slug);
+        if (!product) return []; // product was removed from the catalogue
+        const left = stockFor(product, line.colour, line.size);
+        const qty = Math.max(1, Math.min(line.qty, MAX_QTY, left));
+        const unit = unitPrice(product, line);
+        return [{ ...line, qty, product, left, unit, total: unit * qty }];
+      }),
+    [stored, productBySlug, stockFor],
+  );
+
+  const add = useCallback((input: AddInput) => {
+    const product = productBySlug(input.slug);
+    if (!product) return;
+    const limit = limitFor(catalog, product, input.colour, input.size);
+    if (limit <= 0) return;
+
+    const wrap = Boolean(input.wrap) && canGiftWrap(product);
+    const note = (input.note ?? "").trim().slice(0, GIFT_NOTE_MAX);
+    const qty = Math.max(1, input.qty ?? 1);
+
+    const current = getSnapshot();
+    const same = current.find(
+      (l) =>
+        l.slug === input.slug &&
+        l.colour === input.colour &&
+        l.size === input.size &&
+        l.wrap === wrap &&
+        l.note === note,
+    );
+    if (same) {
+      setLines(
+        current.map((l) => (l.id === same.id ? { ...l, qty: Math.min(limit, l.qty + qty) } : l)),
+      );
+    } else {
+      setLines([
+        ...current,
+        { id: makeId(), slug: input.slug, colour: input.colour, size: input.size, qty: Math.min(limit, qty), wrap, note },
+      ]);
+    }
+    setOpen(true);
+  }, [catalog, productBySlug]);
+
+  const setQty = useCallback((id: string, qty: number) => {
+    setLines(
+      getSnapshot().map((l) => {
+        if (l.id !== id) return l;
+        const product = productBySlug(l.slug);
+        const limit = product ? limitFor(catalog, product, l.colour, l.size) : MAX_QTY;
+        return { ...l, qty: Math.max(1, Math.min(limit, qty)) };
+      }),
+    );
+  }, [catalog, productBySlug]);
+
+  const remove = useCallback((id: string) => {
+    setLines(getSnapshot().filter((l) => l.id !== id));
   }, []);
 
-  return (
-    <BagContext.Provider value={{ count, add }}>
-      {children}
-      <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-24 z-50 flex justify-center px-4">
-        {toast && (
-          <p
-            key={toast.id}
-            className="toast-pop flex items-center gap-3 rounded-full bg-cream/95 py-2.5 pl-5 pr-6 text-sm text-night shadow-[0_20px_40px_-14px_rgba(0,0,0,0.7)]"
-          >
-            <span aria-hidden="true" className="text-gold-deep">
-              ✦
-            </span>
-            <span>
-              <em className="font-serif text-lg">{toast.name}</em> is in your bag
-            </span>
-          </p>
-        )}
-      </div>
-    </BagContext.Provider>
+  const setGift = useCallback((id: string, gift: { wrap: boolean; note: string }) => {
+    setLines(
+      getSnapshot().map((l) =>
+        l.id === id ? { ...l, wrap: gift.wrap, note: gift.note.slice(0, GIFT_NOTE_MAX) } : l,
+      ),
+    );
+  }, []);
+
+  const value = useMemo<Bag>(
+    () => ({
+      lines,
+      count: lines.reduce((sum, l) => sum + l.qty, 0),
+      subtotal: lines.reduce((sum, l) => sum + l.total, 0),
+      isOpen,
+      setOpen,
+      add,
+      setQty,
+      remove,
+      setGift,
+    }),
+    [lines, isOpen, add, setQty, remove, setGift],
   );
+
+  return <BagContext.Provider value={value}>{children}</BagContext.Provider>;
 }

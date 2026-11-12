@@ -4,15 +4,17 @@ import { useState } from "react";
 import { ProductArt } from "@/components/product/ProductArt";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
-import { formatPrice, hamperContents, hampers as allHampers } from "@/lib/catalog";
-
-const hampers = allHampers();
+import { useCatalog } from "@/components/catalog/CatalogProvider";
+import { formatPrice } from "@/lib/catalog";
 
 /** Featured hampers: the hamper on one side, what is inside it on the other. */
 export function Hampers({ index }: { index: number }) {
+  const catalog = useCatalog();
+  const hampers = catalog.hampers();
   const [active, setActive] = useState(0);
-  const hamper = hampers[active];
-  const inside = hamperContents(hamper);
+  const hamper = hampers[active] ?? hampers[0];
+  if (!hamper) return null; // no hampers in the catalogue
+  const inside = catalog.hamperContents(hamper);
   const separately = inside.reduce((sum, p) => sum + p.price, 0);
 
   return (

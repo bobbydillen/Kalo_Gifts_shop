@@ -1,6 +1,6 @@
 # KALO Gifts website: build plan
 
-Status: confirmed 2026-11-11. Phases 1 and 2 built. Phase 3: collection, product and hamper pages built on a file-based catalogue; the database is deferred to phase 4, where orders need it.
+Status: confirmed 2026-11-11. Phases 1 to 3 built. Phase 4 in progress: bag and gift options done; checkout form, WhatsApp login and payments to come. Phase 5 in progress: database live (Supabase, Mumbai); admin sign-in, overview, orders and products (with photos and stock) built, and the shop now reads products from the database; settings screen to come.
 
 ## 1. What we are building
 
@@ -93,3 +93,7 @@ Each phase ends with something you can open and review.
 1. **Personalisation.** No name printing. Products are sold as designed.
 2. **Customer accounts.** No sign-up step. Checking out with a phone number creates the account automatically and stores the customer's details and orders against that number. Returning customers are recognised by phone number. Viewing saved details or past orders requires a one-time code sent to that phone, so nobody can see another person's address by typing their number.
 3. **Logo tagline.** Keep "Artisanal gifts · made with heart".
+4. **Payments last.** Razorpay is added at the very end. Phase 4 builds the bag and the checkout form without taking payment.
+5. **Phone verification by WhatsApp.** Returning customers get a one-time code on WhatsApp from KALO's WhatsApp Business number (replaces SMS). Needs a Meta Business setup and an approved message template.
+6. **Gift options on every item.** Gift wrap is Rs 50 per piece (not offered on hampers, which arrive packed). A handwritten card is Rs 50 per piece with a message of up to 250 characters. Both can be set on the product page and changed in the bag.
+7. **Delivery areas and charges** are decided later.

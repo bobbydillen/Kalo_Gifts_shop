@@ -10,7 +10,7 @@ import { announcements, navLinks } from "@/lib/site";
 
 export function Header() {
   const [open, setOpen] = useState(false);
-  const { count } = useBag();
+  const { count, setOpen: openBag } = useBag();
 
   // Close the phone menu with Escape, and stop the page scrolling behind it.
   useEffect(() => {
@@ -93,6 +93,8 @@ export function Header() {
           <button
             type="button"
             aria-label={`Bag, ${count} ${count === 1 ? "item" : "items"}`}
+            aria-haspopup="dialog"
+            onClick={() => openBag(true)}
             className="flex items-center gap-2.5 justify-self-end rounded-full border border-hair-2 py-1.5 pl-4 pr-1.5 text-[0.8125rem] tracking-[0.06em] transition-[transform,border-color] duration-500 ease-bounce hover:border-gold active:scale-95"
           >
             Bag

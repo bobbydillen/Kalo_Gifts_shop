@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CataloguePage } from "@/components/product/CataloguePage";
-import { categories, categoryBySlug, productsIn } from "@/lib/catalog";
+import { categories, categoryBySlug, createCatalog } from "@/lib/catalog";
+import { getProducts } from "@/lib/catalog-data";
 
 export function generateStaticParams() {
   return categories.map((c) => ({ category: c.slug }));
@@ -25,6 +26,7 @@ export default function CategoryPage({ params }: PageProps<"/gifts/[category]">)
 async function CategoryPageContent({ params }: Pick<PageProps<"/gifts/[category]">, "params">) {
   const category = categoryBySlug((await params).category);
   if (!category) notFound();
+  const { productsIn } = createCatalog(await getProducts());
 
   return (
     <CataloguePage

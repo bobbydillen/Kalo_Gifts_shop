@@ -1,23 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { useBag } from "@/components/bag/BagProvider";
+import { MAX_QTY, useBag } from "@/components/bag/BagProvider";
+import { GiftOptions } from "@/components/bag/GiftOptions";
 import { SizeGuide } from "@/components/product/SizeGuide";
-import { stockFor, type Product } from "@/lib/catalog";
+import { useCatalog } from "@/components/catalog/CatalogProvider";
+import { formatPrice, type Product } from "@/lib/catalog";
+import { unitPrice } from "@/lib/gifting";
 
 const LOW_STOCK = 3; // at or below this, show how many are left
 
-/** Colour, size and quantity choices, and the add-to-bag button. */
+/** Colour, size, gift options and quantity choices, and the add-to-bag button. */
 export function ProductBuy({ product }: { product: Product }) {
   const { add } = useBag();
+  const { stockFor } = useCatalog();
   const [colour, setColour] = useState(product.colours[0]?.name);
   const [size, setSize] = useState<string>();
   const [qty, setQty] = useState(1);
+  const [gift, setGift] = useState({ wrap: false, note: "" });
 
   const needsSize = product.sizes.length > 0;
   const left = stockFor(product, colour, size);
   const soldOut = (!needsSize || size !== undefined) && left <= 0;
-  const maxQty = Math.min(10, left);
+  const maxQty = Math.min(MAX_QTY, left);
+  const total = unitPrice(product, gift) * qty;
 
   const pickColour = (name: string) => {
     setColour(name);
@@ -26,8 +32,8 @@ export function ProductBuy({ product }: { product: Product }) {
     setQty(1);
   };
 
-  const label = needsSize && !size ? "Choose a size" : soldOut ? "Sold out" : "Add to bag";
-  const variant = [colour, size].filter(Boolean).join(", ");
+  const label =
+    needsSize && !size ? "Choose a size" : soldOut ? "Sold out" : `Add to bag · ${formatPrice(total)}`;
 
   return (
     <div className="space-y-7">
@@ -86,6 +92,13 @@ export function ProductBuy({ product }: { product: Product }) {
         </fieldset>
       )}
 
+      <section aria-labelledby="gift-options-title">
+        <h2 id="gift-options-title" className="mb-3 font-sans text-sm text-mist">
+          Make it a gift
+        </h2>
+        <GiftOptions product={product} wrap={gift.wrap} note={gift.note} onChange={setGift} />
+      </section>
+
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex h-14 items-center rounded-full border border-hair-2" role="group" aria-label="Quantity">
           <button
@@ -114,9 +127,7 @@ export function ProductBuy({ product }: { product: Product }) {
         <button
           type="button"
           disabled={(needsSize && !size) || soldOut}
-          onClick={() => {
-            for (let i = 0; i < qty; i++) add(variant ? `${product.name} (${variant})` : product.name);
-          }}
+          onClick={() => add({ slug: product.slug, colour, size, qty, wrap: gift.wrap, note: gift.note })}
           className="btn btn-gold h-14 flex-1 disabled:pointer-events-none disabled:opacity-55 disabled:saturate-50"
         >
           {label}

@@ -1,11 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Bodoni_Moda, Manrope } from "next/font/google";
-import { BagProvider } from "@/components/bag/BagProvider";
-import { Snowfall } from "@/components/effects/Snowfall";
-import { Footer } from "@/components/site/Footer";
-import { Header } from "@/components/site/Header";
-import { Loader } from "@/components/brand/Loader";
-import { seasonal, site } from "@/lib/site";
+import { site } from "@/lib/site";
 import "./globals.css";
 
 const bodoni = Bodoni_Moda({
@@ -36,6 +31,10 @@ export const viewport: Viewport = {
  */
 const skipLoader = `try{if(sessionStorage.getItem("kalo-intro")||matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.dataset.intro="seen"}catch(e){}`;
 
+/**
+ * Root shell shared by the shop and the admin. The shop's own chrome (header,
+ * footer, bag, snow, loading screen) lives in app/(site)/layout.tsx.
+ */
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -47,13 +46,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: skipLoader }} />
       </head>
       <body className="flex min-h-dvh flex-col">
-        <Loader />
-        <BagProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </BagProvider>
-        {seasonal.snowfall && <Snowfall />}
+        {children}
         <div className="grain" aria-hidden="true" />
       </body>
     </html>

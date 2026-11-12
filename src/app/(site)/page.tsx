@@ -6,7 +6,7 @@ import { LovedOnes } from "@/components/home/LovedOnes";
 import { OrderByPill } from "@/components/home/OrderByPill";
 import { ClosingCta, Faq, Gifting, Story } from "@/components/home/Sections";
 import { WordTicker } from "@/components/home/WordTicker";
-import { allProducts } from "@/lib/catalog";
+import { getProducts } from "@/lib/catalog-data";
 import { seasonal } from "@/lib/site";
 
 /**
@@ -14,7 +14,9 @@ import { seasonal } from "@/lib/site";
  * the Christmas block follows as the second section; switching it off removes
  * it and the page closes up.
  */
-export default function Home() {
+export default async function Home() {
+  const products = await getProducts();
+
   return (
     <>
       <LogoHero />
@@ -26,7 +28,7 @@ export default function Home() {
       <Collection
         index={3}
         label="The collection"
-        items={allProducts()}
+        items={products}
         title={
           <>
             Everyday pieces with something to <em>say</em>

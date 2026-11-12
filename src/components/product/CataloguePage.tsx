@@ -3,13 +3,14 @@ import type { ReactNode } from "react";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { Rise } from "@/components/ui/Rise";
-import { categories, productsIn, type Product } from "@/lib/catalog";
+import { categories, createCatalog, type Product } from "@/lib/catalog";
+import { getProducts } from "@/lib/catalog-data";
 
 /**
  * Shared layout for /gifts and /gifts/<category>: a heading, category chips
  * that link between the pages, and the product grid.
  */
-export function CataloguePage({
+export async function CataloguePage({
   kicker,
   title,
   intro,
@@ -22,6 +23,7 @@ export function CataloguePage({
   items: Product[];
   active: string | null; // category slug, or null for "all"
 }) {
+  const { productsIn } = createCatalog(await getProducts());
   const chips = [
     { label: "All gifts", href: "/gifts", slug: null as string | null },
     ...categories

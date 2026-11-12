@@ -51,7 +51,7 @@ export function ProductCard({ product }: { product: Product }) {
         ) : (
           <button
             type="button"
-            onClick={() => add(product.name)}
+            onClick={() => add({ slug: product.slug })}
             aria-label={`Add ${product.name} to bag`}
             className={round}
           >
