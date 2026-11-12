@@ -1,3 +1,4 @@
+import { ProductGallery } from "@/components/product/ProductGallery";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -65,24 +66,13 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
         <div className="mt-8 grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
           {/* Picture. Stays in view on wide screens while the details scroll. */}
           <Rise className="lg:sticky lg:top-28 lg:self-start">
-            <div
-              className="relative grid aspect-[4/5] place-items-center overflow-hidden rounded-[28px] border border-hair"
-              style={{
-                background: `radial-gradient(circle at 50% 42%, color-mix(in srgb, ${product.tint} 65%, transparent), var(--color-pine-2) 72%)`,
-              }}
-            >
-              {product.tag && (
-                <span className="absolute left-5 top-5 rounded-full border border-hair-2 bg-night/50 px-3 py-1.5 text-[0.625rem] uppercase tracking-[0.2em] text-gold-light backdrop-blur">
-                  {product.tag}
-                </span>
-              )}
-              {product.images[0] ? (
-                // eslint-disable-next-line @next/next/no-img-element -- photo sizes are not known until real photos arrive
-                <img src={product.images[0]} alt={product.name} className="size-full object-cover" />
-              ) : (
-                <ProductArt category={product.category} className="w-[48%] text-gold-light" />
-              )}
-            </div>
+            <ProductGallery
+              images={product.images}
+              name={product.name}
+              tint={product.tint}
+              tag={product.tag}
+              fallback={<ProductArt category={product.category} className="w-[48%] text-gold-light" />}
+            />
           </Rise>
 
           <div>
