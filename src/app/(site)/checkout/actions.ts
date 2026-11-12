@@ -3,7 +3,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { after } from "next/server";
 import { cleanPhone, describeOrderError, validateDetails, type PlaceOrderInput } from "@/lib/checkout";
-import { sendOrderAlert } from "@/lib/order-email";
+import { sendOrderEmails } from "@/lib/order-email";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export type PlaceOrderResult =
@@ -58,7 +58,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
   }
 
   const result = data as { number: number; total: number };
-  // email the shop owner after the response, so the customer never waits for it
-  after(() => sendOrderAlert(result, { ...details.value, phone }, items));
+  // email the shop owner and the customer after the response, so the customer never waits for it
+  after(() => sendOrderEmails(result, { ...details.value, phone }, items));
   return { ok: true, number: result.number, total: result.total };
 }
