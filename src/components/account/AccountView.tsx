@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { formatPrice } from "@/lib/catalog";
+import { chatLink, returnMessage } from "@/lib/contact";
 import { isEmail } from "@/lib/checkout";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useCustomer } from "@/lib/use-customer";
@@ -18,6 +19,8 @@ const customerStatus: Record<string, string> = {
   shipped: "On the way",
   delivered: "Delivered",
   cancelled: "Cancelled",
+  return_arranged: "Return arranged",
+  returned: "Returned",
 };
 
 const dateFormat = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
@@ -226,6 +229,7 @@ type OrderRow = {
 };
 
 function Orders({ who }: { who: string }) {
+  const settings = useSettings();
   const [orders, setOrders] = useState<OrderRow[] | "error" | null>(null);
 
   useEffect(() => {
@@ -345,7 +349,23 @@ function Orders({ who }: { who: string }) {
                   {order.tracking_note && (
                     <p className="mt-4 rounded-xl border border-hair-2 px-4 py-3 text-sm text-mist">{order.tracking_note}</p>
                   )}
-                  <p className="mt-4 text-right font-serif text-2xl text-gold-light">{formatPrice(order.total)}</p>
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                    {chatLink(settings, returnMessage(order.number)) ? (
+                      <a
+                        href={chatLink(settings, returnMessage(order.number))!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-gold-light underline underline-offset-4"
+                      >
+                        {["delivered", "shipped", "return_arranged", "returned"].includes(order.status)
+                          ? "Return, exchange or help: chat with us"
+                          : "Change or cancel this order: chat with us"}
+                      </a>
+                    ) : (
+                      <span />
+                    )}
+                    <p className="font-serif text-2xl text-gold-light">{formatPrice(order.total)}</p>
+                  </div>
                 </li>
               ))}
             </ul>

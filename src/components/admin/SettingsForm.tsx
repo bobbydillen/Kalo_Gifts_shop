@@ -71,6 +71,12 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
   const [maxChars, setMaxChars] = useState(String(initial.giftCardMaxChars));
   const [checkoutOpen, setCheckoutOpen] = useState(initial.checkoutOpen);
   const [customerLogin, setCustomerLogin] = useState(initial.customerLogin);
+  const [whatsapp, setWhatsapp] = useState(initial.whatsappNumber);
+  const [contactEmail, setContactEmail] = useState(initial.contactEmail);
+  const [businessName, setBusinessName] = useState(initial.businessName);
+  const [businessAddress, setBusinessAddress] = useState(initial.businessAddress);
+  const [gstin, setGstin] = useState(initial.gstin);
+  const [grievance, setGrievance] = useState(initial.grievanceOfficer);
   const [freeOver, setFreeOver] = useState(String(initial.freeShippingOver));
   const [rates, setRates] = useState<Record<Zone, string[]>>(() => ({
     tn: initial.shippingRates.tn.map(String),
@@ -104,6 +110,12 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
       giftCardMaxChars: Number(maxChars),
       checkoutOpen,
       customerLogin,
+      whatsappNumber: whatsapp,
+      contactEmail,
+      businessName,
+      businessAddress,
+      gstin,
+      grievanceOfficer: grievance,
       freeShippingOver: Number(freeOver),
       shippingRates: {
         tn: rates.tn.map(Number) as ZoneRates,
@@ -247,6 +259,45 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
           The first three columns are the charge for the whole parcel. The last is added for every extra 1 kg (or part of it) beyond 2 kg.
           Heavy or far orders cost you more, so check these against what Shiprocket charges you.
         </p>
+      </Section>
+
+      <Section
+        title={
+          <>
+            Business <em>details</em>
+          </>
+        }
+        hint="Shown on the Contact page and in the policy pages, and used for the “Chat with us” buttons. Leave out anything you do not want to show. Indian rules expect a seller name, address and a person for complaints."
+      >
+        <div className="grid gap-5 sm:grid-cols-2">
+          <label className="block text-sm text-mist">
+            WhatsApp number for customers
+            <input inputMode="numeric" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className={field} />
+            <span className="mt-1 block text-xs text-faint">10 digits. Customers chat here, including about returns.</span>
+          </label>
+          <label className="block text-sm text-mist">
+            Contact email
+            <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className={field} />
+          </label>
+          <label className="block text-sm text-mist">
+            Business name
+            <input value={businessName} maxLength={120} onChange={(e) => setBusinessName(e.target.value)} className={field} />
+            <span className="mt-1 block text-xs text-faint">The name you trade under, for example the one on your registration.</span>
+          </label>
+          <label className="block text-sm text-mist">
+            GSTIN <span className="text-faint">(optional)</span>
+            <input value={gstin} maxLength={20} onChange={(e) => setGstin(e.target.value)} className={field} />
+          </label>
+          <label className="block text-sm text-mist sm:col-span-2">
+            Business address
+            <textarea rows={3} value={businessAddress} maxLength={400} onChange={(e) => setBusinessAddress(e.target.value)} className={field} />
+          </label>
+          <label className="block text-sm text-mist sm:col-span-2">
+            Person who handles complaints
+            <input value={grievance} maxLength={120} onChange={(e) => setGrievance(e.target.value)} className={field} />
+            <span className="mt-1 block text-xs text-faint">Their name. Customers reach them on the contact details above.</span>
+          </label>
+        </div>
       </Section>
 
       <Section

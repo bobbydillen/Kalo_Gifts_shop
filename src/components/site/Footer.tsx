@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getSettings } from "@/lib/settings-data";
+import { POLICY_LINKS } from "@/lib/policies";
 import { footerLinksFor, site } from "@/lib/site";
 
 export async function Footer() {
@@ -9,7 +10,7 @@ export async function Footer() {
 
   return (
     <footer className="border-t border-hair bg-pine">
-      <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr] lg:py-20">
+      <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr] lg:py-20">
         <div>
           <div className="flex items-center gap-4">
             <Image
@@ -34,6 +35,24 @@ export async function Footer() {
               <li key={link.href}>
                 <Link href={link.href} className="text-mist transition-colors hover:text-gold-light">
                   {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <nav aria-label="Help and policies">
+          <p className="kicker mb-5">Help</p>
+          <ul className="space-y-3">
+            <li>
+              <Link href="/contact" className="text-mist transition-colors hover:text-gold-light">
+                Contact us
+              </Link>
+            </li>
+            {POLICY_LINKS.map((p) => (
+              <li key={p.slug}>
+                <Link href={`/policies/${p.slug}`} className="text-mist transition-colors hover:text-gold-light">
+                  {p.label}
                 </Link>
               </li>
             ))}

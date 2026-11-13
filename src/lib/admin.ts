@@ -7,6 +7,8 @@ export const ORDER_STATUSES = [
   { id: "shipped", label: "Shipped" },
   { id: "delivered", label: "Delivered" },
   { id: "cancelled", label: "Cancelled" },
+  { id: "return_arranged", label: "Return arranged" },
+  { id: "returned", label: "Returned" },
 ] as const;
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number]["id"];
@@ -86,6 +88,10 @@ export function statusMessage(order: Pick<OrderRow, "number" | "ship_name" | "tr
       return `${head} It has been shipped.${order.tracking_note ? ` ${order.tracking_note}` : ""}`;
     case "delivered":
       return `${head} It should have reached you. We hope you love it! Tell us how it went.`;
+    case "return_arranged":
+      return `${head} Your return is arranged. We will share the pickup details here.`;
+    case "returned":
+      return `${head} We have received your return. We will finish the refund or exchange and update you here.`;
     case "cancelled":
       return `${head} It has been cancelled. Reply here if you have questions.`;
     default:

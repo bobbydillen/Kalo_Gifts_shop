@@ -1,3 +1,4 @@
+import { isEmail } from "@/lib/checkout";
 import { DEFAULT_SHIPPING_RATES, parseRates, ZONES, type ShippingRates } from "@/lib/shipping";
 
 /**
@@ -20,6 +21,14 @@ export type SiteSettings = {
   checkoutOpen: boolean; // customers can place orders
   freeShippingOver: number; // items total (rupees) at or above which delivery is free
   shippingRates: ShippingRates; // delivery charge by region and parcel weight
+  // Business details shown on the Contact page, in the policies and for return chats.
+  // Left empty in the code (this repository is public); filled in from the admin.
+  whatsappNumber: string; // digits, with or without 91
+  contactEmail: string;
+  businessName: string; // the legal name the shop trades under
+  businessAddress: string; // registered address
+  gstin: string; // optional
+  grievanceOfficer: string; // name of the person who handles complaints
   customerLogin: boolean; // sign-in by text message and the Account page
 };
 
@@ -36,6 +45,12 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   checkoutOpen: false, // stays off until payments or another way to pay are ready
   freeShippingOver: 1000,
   shippingRates: DEFAULT_SHIPPING_RATES,
+  whatsappNumber: "",
+  contactEmail: "",
+  businessName: "",
+  businessAddress: "",
+  gstin: "",
+  grievanceOfficer: "",
   customerLogin: false, // off until the SMS provider is set up and tested
 };
 
@@ -53,6 +68,12 @@ export const SETTING_KEYS: Record<keyof SiteSettings, string> = {
   checkoutOpen: "checkout_open",
   freeShippingOver: "shipping_free_over",
   shippingRates: "shipping_rates",
+  whatsappNumber: "whatsapp_number",
+  contactEmail: "contact_email",
+  businessName: "business_name",
+  businessAddress: "business_address",
+  gstin: "gstin",
+  grievanceOfficer: "grievance_officer",
   customerLogin: "customer_login",
 };
 
@@ -68,6 +89,8 @@ export function parseSettings(rows: { key: string; value: unknown }[]): SiteSett
     const fallback = DEFAULT_SETTINGS[name];
     if (name === "shippingRates") {
       out.shippingRates = parseRates(value) ?? DEFAULT_SHIPPING_RATES;
+    } else if (typeof fallback === "string" && typeof value === "string" && name !== "orderByDate" && name !== "christmasDate") {
+      (out[name] as string) = value;
     } else if (typeof fallback === "boolean" && typeof value === "boolean") (out[name] as boolean) = value;
     else if (typeof fallback === "number" && typeof value === "number" && Number.isFinite(value)) (out[name] as number) = value;
     else if (name === "orderByDate" || name === "christmasDate") {
@@ -98,6 +121,17 @@ export function validateSettings(
     const year = new Date(v).getUTCFullYear();
     if (year < 2024 || year > 2100) return fail("That date looks wrong. Check the year.");
   }
+  const text = (v: unknown, max: number) => typeof v === "string" && v.trim().length <= max;
+  const digits = typeof raw.whatsappNumber === "string" ? raw.whatsappNumber.replace(/\D/g, "") : "";
+  if (!text(raw.whatsappNumber, 20) || (digits && !/^(91)?[6-9]\d{9}$/.test(digits))) {
+    return fail("Enter the WhatsApp number as a 10-digit Indian mobile number, or leave it empty.");
+  }
+  if (!text(raw.contactEmail, 200) || (raw.contactEmail.trim() && !isEmail(raw.contactEmail.trim()))) {
+    return fail("Enter a valid contact email, or leave it empty.");
+  }
+  if (!text(raw.businessName, 120) || !text(raw.businessAddress, 400) || !text(raw.gstin, 20) || !text(raw.grievanceOfficer, 120)) {
+    return fail("One of the business details is too long.");
+  }
   const whole = (v: unknown, min: number, max: number) => Number.isInteger(v) && (v as number) >= min && (v as number) <= max;
   if (!whole(raw.giftWrapPrice, 0, 5000)) return fail("Gift wrap price must be a whole number of rupees, 0 to 5000.");
   if (!whole(raw.giftCardPrice, 0, 5000)) return fail("Handwritten card price must be a whole number of rupees, 0 to 5000.");
@@ -107,7 +141,18 @@ export function validateSettings(
   }
   if (!whole(raw.giftCardMaxChars, 20, 1000)) return fail("The card message limit must be between 20 and 1000 characters.");
 
-  return { ok: true, value: { ...raw } };
+  return {
+    ok: true,
+    value: {
+      ...raw,
+      whatsappNumber: digits ? digits.slice(-10) : "",
+      contactEmail: raw.contactEmail.trim().toLowerCase(),
+      businessName: raw.businessName.trim(),
+      businessAddress: raw.businessAddress.trim(),
+      gstin: raw.gstin.trim().toUpperCase(),
+      grievanceOfficer: raw.grievanceOfficer.trim(),
+    },
+  };
 }
 
 // ---- dates are entered and shown in Indian time -----------------------------

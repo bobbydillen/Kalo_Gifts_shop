@@ -322,6 +322,13 @@ export function CheckoutView() {
           <button type="submit" disabled={pending} className="btn btn-gold mt-6 w-full disabled:opacity-60">
             {pending ? "Placing your order…" : `Place order · ${formatPrice(total)}`}
           </button>
+          <p className="mt-3 text-xs text-faint">
+            By placing your order you agree to our{" "}
+            <Link href="/policies/terms" className="underline underline-offset-4 hover:text-cream">terms</Link>,{" "}
+            <Link href="/policies/privacy" className="underline underline-offset-4 hover:text-cream">privacy policy</Link>,{" "}
+            <Link href="/policies/shipping" className="underline underline-offset-4 hover:text-cream">shipping</Link> and{" "}
+            <Link href="/policies/returns" className="underline underline-offset-4 hover:text-cream">returns</Link> policies.
+          </p>
           <p className="mt-3 text-center text-xs text-faint">
             We will message you on WhatsApp to confirm your order and share how to pay.
           </p>
