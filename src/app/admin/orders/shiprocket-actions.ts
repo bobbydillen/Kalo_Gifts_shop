@@ -17,8 +17,13 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 /** Only a signed-in admin may use Shiprocket. A customer could otherwise read their own order here. */
 async function adminClient() {
   const supabase = await supabaseServer();
-  const { data } = await supabase.rpc("is_admin");
-  return data === true ? supabase : null;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  // the database only lets admins read this table, so finding your own row proves you are one
+  const { data } = await supabase.from("admins").select("user_id").eq("user_id", user.id).maybeSingle();
+  return data ? supabase : null;
 }
 
 const failure = (err: unknown): ShipResult => ({
