@@ -21,9 +21,14 @@ export default async function ProductsPage() {
         <h1 className="text-5xl">
           Prod<em>ucts</em>
         </h1>
-        <Link href="/admin/products/new" className="btn btn-gold">
-          + New product
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/admin/products/report" className="btn btn-outline">
+            Stock and sales
+          </Link>
+          <Link href="/admin/products/new" className="btn btn-gold">
+            + New product
+          </Link>
+        </div>
       </div>
 
       {error ? (

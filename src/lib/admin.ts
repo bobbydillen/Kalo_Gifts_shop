@@ -69,6 +69,10 @@ const dateFormat = new Intl.DateTimeFormat("en-IN", {
 });
 export const formatDate = (iso: string) => dateFormat.format(new Date(iso));
 
+const dayFormat = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
+/** A date with the year, in Indian time: "12 Nov 2026". */
+export const formatDay = (iso: string) => dayFormat.format(new Date(iso));
+
 /** A wa.me link that opens WhatsApp with a message ready to send. Indian numbers get +91. */
 export function whatsappLink(phone: string, text: string) {
   const digits = phone.replace(/\D/g, "");
