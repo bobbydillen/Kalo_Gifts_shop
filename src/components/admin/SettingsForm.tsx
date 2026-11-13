@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useTransition, type ReactNode } from "react";
 import { saveSettings } from "@/app/admin/settings/actions";
 import { fromIstInput, toIstInput, validateSettings, type SiteSettings } from "@/lib/settings";
+import { RATE_COLUMNS, ZONES, type Zone, type ZoneRates } from "@/lib/shipping";
 
 const field =
   "mt-2 block w-full rounded-xl border border-hair-2 bg-night/60 px-4 py-3 text-cream placeholder:text-faint focus:border-gold focus:outline-none";
@@ -70,11 +71,18 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
   const [maxChars, setMaxChars] = useState(String(initial.giftCardMaxChars));
   const [checkoutOpen, setCheckoutOpen] = useState(initial.checkoutOpen);
   const [customerLogin, setCustomerLogin] = useState(initial.customerLogin);
-  const [deliveryFee, setDeliveryFee] = useState(String(initial.deliveryFee));
+  const [freeOver, setFreeOver] = useState(String(initial.freeShippingOver));
+  const [rates, setRates] = useState<Record<Zone, string[]>>(() => ({
+    tn: initial.shippingRates.tn.map(String),
+    south: initial.shippingRates.south.map(String),
+    india: initial.shippingRates.india.map(String),
+  }));
+  const setRate = (zone: Zone, index: number, value: string) =>
+    setRates((r) => ({ ...r, [zone]: r[zone].map((v, i) => (i === index ? value.replace(/\D/g, "") : v)) }));
 
   function submit() {
     setResult(null);
-    if ([wrapPrice, cardPrice, maxChars, deliveryFee].some((v) => v.trim() === "")) {
+    if ([wrapPrice, cardPrice, maxChars, freeOver, ...Object.values(rates).flat()].some((v) => v.trim() === "")) {
       setResult({ ok: false, text: "Fill in every number box. Type 0 where something is free." });
       return;
     }
@@ -96,7 +104,12 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
       giftCardMaxChars: Number(maxChars),
       checkoutOpen,
       customerLogin,
-      deliveryFee: Number(deliveryFee),
+      freeShippingOver: Number(freeOver),
+      shippingRates: {
+        tn: rates.tn.map(Number) as ZoneRates,
+        south: rates.south.map(Number) as ZoneRates,
+        india: rates.india.map(Number) as ZoneRates,
+      },
     });
     if (!checked.ok) {
       setResult({ ok: false, text: checked.error });
@@ -178,11 +191,62 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
           title="Customer sign-in by email code"
           hint="Adds an Account link where customers enter a code emailed to them to see their orders. Turn on only after the email sending service and email templates are set up in Supabase and tested."
         />
+      </Section>
+
+      <Section
+        title={
+          <>
+            <em>Delivery</em> charges
+          </>
+        }
+        hint="Worked out from where the parcel goes and what it weighs, and added to the total at checkout. Set each product's weight on its Products page."
+      >
         <label className="block max-w-xs text-sm text-mist">
-          Delivery fee (₹, added once to every order)
-          <input required inputMode="numeric" value={deliveryFee} onChange={(e) => setDeliveryFee(e.target.value.replace(/\D/g, ""))} className={field} />
-          <span className="mt-1 block text-xs text-faint">Type 0 for none. Delivery areas and different charges can come later.</span>
+          Free delivery when items total at least (₹)
+          <input required inputMode="numeric" value={freeOver} onChange={(e) => setFreeOver(e.target.value.replace(/\D/g, ""))} className={field} />
+          <span className="mt-1 block text-xs text-faint">Type 0 to make delivery always free.</span>
         </label>
+
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[34rem] text-left text-sm">
+            <thead className="text-xs uppercase tracking-[0.14em] text-faint">
+              <tr>
+                <th className="pb-2 pr-3 font-normal">Region (₹)</th>
+                {RATE_COLUMNS.map((c) => (
+                  <th key={c} className="pb-2 pr-3 font-normal">
+                    {c}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {ZONES.map((z) => (
+                <tr key={z.id} className="border-t border-hair align-top">
+                  <th scope="row" className="py-3 pr-3 font-normal text-mist">
+                    {z.label}
+                    <span className="block text-xs text-faint">{z.states}</span>
+                  </th>
+                  {rates[z.id].map((value, i) => (
+                    <td key={i} className="py-3 pr-3">
+                      <input
+                        required
+                        inputMode="numeric"
+                        aria-label={`${z.label}, ${RATE_COLUMNS[i]}`}
+                        value={value}
+                        onChange={(e) => setRate(z.id, i, e.target.value)}
+                        className="w-24 rounded-xl border border-hair-2 bg-pine px-3 py-2 text-cream focus:border-gold focus:outline-none"
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-xs text-faint">
+          The first three columns are the charge for the whole parcel. The last is added for every extra 1 kg (or part of it) beyond 2 kg.
+          Heavy or far orders cost you more, so check these against what Shiprocket charges you.
+        </p>
       </Section>
 
       <Section

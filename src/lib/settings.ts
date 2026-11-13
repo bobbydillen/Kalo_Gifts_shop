@@ -1,3 +1,5 @@
+import { DEFAULT_SHIPPING_RATES, parseRates, ZONES, type ShippingRates } from "@/lib/shipping";
+
 /**
  * Site settings: the Christmas switches and dates, and the gift option prices.
  * They live in the database (table site_settings) and are edited in the admin.
@@ -16,7 +18,8 @@ export type SiteSettings = {
   giftCardPrice: number; // rupees per piece
   giftCardMaxChars: number;
   checkoutOpen: boolean; // customers can place orders
-  deliveryFee: number; // flat rupees added to every order
+  freeShippingOver: number; // items total (rupees) at or above which delivery is free
+  shippingRates: ShippingRates; // delivery charge by region and parcel weight
   customerLogin: boolean; // sign-in by text message and the Account page
 };
 
@@ -31,7 +34,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   giftCardPrice: 50,
   giftCardMaxChars: 250,
   checkoutOpen: false, // stays off until payments or another way to pay are ready
-  deliveryFee: 0,
+  freeShippingOver: 1000,
+  shippingRates: DEFAULT_SHIPPING_RATES,
   customerLogin: false, // off until the SMS provider is set up and tested
 };
 
@@ -47,7 +51,8 @@ export const SETTING_KEYS: Record<keyof SiteSettings, string> = {
   giftCardPrice: "gift_card_price",
   giftCardMaxChars: "gift_card_max_chars",
   checkoutOpen: "checkout_open",
-  deliveryFee: "delivery_fee",
+  freeShippingOver: "shipping_free_over",
+  shippingRates: "shipping_rates",
   customerLogin: "customer_login",
 };
 
@@ -61,7 +66,9 @@ export function parseSettings(rows: { key: string; value: unknown }[]): SiteSett
   for (const name of Object.keys(DEFAULT_SETTINGS) as (keyof SiteSettings)[]) {
     const value = byKey.get(SETTING_KEYS[name]);
     const fallback = DEFAULT_SETTINGS[name];
-    if (typeof fallback === "boolean" && typeof value === "boolean") (out[name] as boolean) = value;
+    if (name === "shippingRates") {
+      out.shippingRates = parseRates(value) ?? DEFAULT_SHIPPING_RATES;
+    } else if (typeof fallback === "boolean" && typeof value === "boolean") (out[name] as boolean) = value;
     else if (typeof fallback === "number" && typeof value === "number" && Number.isFinite(value)) (out[name] as number) = value;
     else if (name === "orderByDate" || name === "christmasDate") {
       if (isDate(value)) out[name] = value;
@@ -94,7 +101,10 @@ export function validateSettings(
   const whole = (v: unknown, min: number, max: number) => Number.isInteger(v) && (v as number) >= min && (v as number) <= max;
   if (!whole(raw.giftWrapPrice, 0, 5000)) return fail("Gift wrap price must be a whole number of rupees, 0 to 5000.");
   if (!whole(raw.giftCardPrice, 0, 5000)) return fail("Handwritten card price must be a whole number of rupees, 0 to 5000.");
-  if (!whole(raw.deliveryFee, 0, 5000)) return fail("The delivery fee must be a whole number of rupees, 0 to 5000.");
+  if (!whole(raw.freeShippingOver, 0, 1_000_000)) return fail("The free-delivery limit must be a whole number of rupees.");
+  if (!parseRates(raw.shippingRates)) {
+    return fail(`Fill in every delivery charge with a whole number of rupees, 0 to 5000, for ${ZONES.map((z) => z.label).join(", ")}.`);
+  }
   if (!whole(raw.giftCardMaxChars, 20, 1000)) return fail("The card message limit must be between 20 and 1000 characters.");
 
   return { ok: true, value: { ...raw } };

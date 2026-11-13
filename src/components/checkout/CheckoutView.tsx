@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { placeOrder } from "@/app/(site)/checkout/actions";
 import { useBag } from "@/components/bag/BagProvider";
+import { useCatalog } from "@/components/catalog/CatalogProvider";
 import { ProductArt } from "@/components/product/ProductArt";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { formatPrice } from "@/lib/catalog";
 import { INDIAN_STATES, validateDetails } from "@/lib/checkout";
+import { shippingFee } from "@/lib/shipping";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useCustomer } from "@/lib/use-customer";
 
@@ -20,6 +22,7 @@ export function CheckoutView() {
   const router = useRouter();
   const { lines, subtotal, clear } = useBag();
   const settings = useSettings();
+  const catalog = useCatalog();
   const [pending, start] = useTransition();
   const [placed, setPlaced] = useState(false); // keeps the empty-bag message away once the order is in
   const [error, setError] = useState<string | null>(null);
@@ -67,8 +70,10 @@ export function CheckoutView() {
     };
   }, [customer.phone, customer.email, prefilled]);
 
-  const delivery = settings.deliveryFee;
-  const total = subtotal + delivery;
+  // delivery depends on the state, the parcel weight and the order value; the database works it out again
+  const weightG = lines.reduce((sum, l) => sum + (catalog.productBySlug(l.slug)?.weightG ?? 300) * l.qty, 0);
+  const delivery = state ? shippingFee(settings.shippingRates, settings.freeShippingOver, state, weightG, subtotal) : null;
+  const total = subtotal + (delivery ?? 0);
   const unavailable = lines.some((l) => l.left <= 0);
 
   if (!settings.checkoutOpen && !placed) {
@@ -291,11 +296,16 @@ export function CheckoutView() {
               <dt>Subtotal</dt>
               <dd className="tabular-nums">{formatPrice(subtotal)}</dd>
             </div>
-            {delivery > 0 && (
-              <div className="flex justify-between text-mist">
-                <dt>Delivery</dt>
-                <dd className="tabular-nums">{formatPrice(delivery)}</dd>
-              </div>
+            <div className="flex justify-between text-mist">
+              <dt>Delivery</dt>
+              <dd className="tabular-nums">
+                {delivery === null ? "Choose your state" : delivery === 0 ? "Free" : formatPrice(delivery)}
+              </dd>
+            </div>
+            {delivery !== null && delivery > 0 && subtotal < settings.freeShippingOver && (
+              <p className="text-xs text-faint">
+                Add {formatPrice(settings.freeShippingOver - subtotal)} more for free delivery.
+              </p>
             )}
             <div className="flex justify-between pt-2 font-serif text-3xl">
               <dt>Total</dt>

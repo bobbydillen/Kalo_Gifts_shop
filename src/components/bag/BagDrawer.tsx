@@ -176,9 +176,9 @@ export function BagDrawer() {
               <span className="font-serif text-3xl tabular-nums">{formatPrice(subtotal)}</span>
             </p>
             <p className="mt-1 text-sm text-faint">
-              {settings.deliveryFee > 0
-                ? `Delivery ${formatPrice(settings.deliveryFee)} is added at checkout.`
-                : "Delivery is added at checkout if it applies."}
+              {subtotal >= settings.freeShippingOver
+                ? "Delivery is free on this order."
+                : `Add ${formatPrice(settings.freeShippingOver - subtotal)} more for free delivery. Otherwise delivery is worked out at checkout.`}
             </p>
             {settings.checkoutOpen && !unavailable ? (
               <Link href="/checkout" onClick={() => setOpen(false)} className="btn btn-gold mt-5 w-full">

@@ -32,6 +32,7 @@ export type Product = {
   tag?: string;
   christmas: boolean; // part of the Christmas edit
   contains?: string[]; // hampers: slugs of the products inside
+  weightG: number; // packed parcel weight in grams, for the delivery cost
 };
 
 export const categories: { id: Category; label: string; slug: string; intro: string }[] = [
