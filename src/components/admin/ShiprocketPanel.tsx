@@ -21,6 +21,7 @@ export function ShiprocketPanel(props: Props) {
   const [pending, start] = useTransition();
   const [payment, setPayment] = useState(props.paymentMethod === "cod" ? "cod" : "prepaid");
   const [result, setResult] = useState<ShipResult | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   const run = (job: () => Promise<ShipResult>) => {
     setResult(null);
@@ -74,18 +75,34 @@ export function ShiprocketPanel(props: Props) {
               <option value="cod">Cash on delivery</option>
             </select>
           </label>
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => {
-              if (window.confirm("Send this order to Shiprocket? This cannot be undone from here.")) {
-                run(() => sendToShiprocket(props.id, payment));
-              }
-            }}
-            className="btn btn-gold mt-5 w-full disabled:opacity-60"
-          >
-            {pending ? "Sending…" : "Send to Shiprocket"}
-          </button>
+          {confirming ? (
+            <div className="mt-5 rounded-xl border border-gold/40 p-4">
+              <p className="text-sm text-mist">
+                Send this order to Shiprocket as <strong className="text-cream">{payment === "cod" ? "Cash on delivery" : "Prepaid"}</strong>? It
+                cannot be undone from here.
+              </p>
+              <div className="mt-4 flex gap-3">
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => {
+                    setConfirming(false);
+                    run(() => sendToShiprocket(props.id, payment));
+                  }}
+                  className="btn btn-gold flex-1 disabled:opacity-60"
+                >
+                  Yes, send it
+                </button>
+                <button type="button" onClick={() => setConfirming(false)} className="btn btn-outline flex-1">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button type="button" disabled={pending} onClick={() => setConfirming(true)} className="btn btn-gold mt-5 w-full disabled:opacity-60">
+              {pending ? "Sending…" : "Send to Shiprocket"}
+            </button>
+          )}
           <p className="mt-2 text-xs text-faint">Creates the order in Shiprocket with the address, items and parcel size.</p>
         </>
       )}
