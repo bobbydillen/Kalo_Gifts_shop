@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
-import { variantKey, type Category, type Product } from "@/lib/catalog";
+import { frameSizeIds, variantKey, type Category, type FrameSizeId, type Product } from "@/lib/catalog";
 
 type Row = {
   slug: string;
@@ -19,6 +19,9 @@ type Row = {
   contains: string[];
   weight_g: number;
   design_group: string;
+  custom_photo: boolean;
+  photo_size: string;
+  size_prices: Record<string, number> | null;
   design_label: string;
   product_colours: { name: string; hex: string; position: number }[];
   stock: { colour: string; size: string; qty: number }[];
@@ -78,6 +81,9 @@ export async function getProducts(): Promise<Product[]> {
     contains: row.category === "hamper" ? row.contains : undefined,
     weightG: row.weight_g,
     designGroup: row.design_group,
+    customPhoto: row.custom_photo,
+    photoSize: (frameSizeIds.includes(row.photo_size) ? row.photo_size : "A4") as FrameSizeId,
+    sizePrices: row.size_prices ?? {},
     designLabel: row.design_label,
   }));
 }

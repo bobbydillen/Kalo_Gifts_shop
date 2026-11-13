@@ -12,6 +12,8 @@ export type StoredLine = {
   qty: number;
   wrap: boolean;
   note: string; // handwritten card message; empty means no card
+  /** For items the customer sends a photo for: where it is stored, a small preview, and its direction. */
+  photo?: { path: string; thumb: string; orient: "portrait" | "landscape" };
 };
 
 const KEY = "kalo-bag-v1";

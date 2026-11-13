@@ -32,6 +32,7 @@ type AddInput = {
   qty?: number;
   wrap?: boolean;
   note?: string;
+  photo?: StoredLine["photo"];
 };
 
 type Bag = {
@@ -83,7 +84,7 @@ export function BagProvider({ children }: { children: ReactNode }) {
         if (!product) return []; // product was removed from the catalogue
         const left = stockFor(product, line.colour, line.size);
         const qty = Math.max(1, Math.min(line.qty, MAX_QTY, left));
-        const unit = unitPrice(product, line, settings);
+        const unit = unitPrice(product, line, settings, line.size);
         return [{ ...line, qty, product, left, unit, total: unit * qty }];
       }),
     [stored, productBySlug, stockFor, settings],
@@ -106,7 +107,8 @@ export function BagProvider({ children }: { children: ReactNode }) {
         l.colour === input.colour &&
         l.size === input.size &&
         l.wrap === wrap &&
-        l.note === note,
+        l.note === note &&
+        l.photo?.path === input.photo?.path, // each customer photo is its own line
     );
     if (same) {
       setLines(
@@ -115,7 +117,16 @@ export function BagProvider({ children }: { children: ReactNode }) {
     } else {
       setLines([
         ...current,
-        { id: makeId(), slug: input.slug, colour: input.colour, size: input.size, qty: Math.min(limit, qty), wrap, note },
+        {
+          id: makeId(),
+          slug: input.slug,
+          colour: input.colour,
+          size: input.size,
+          qty: Math.min(limit, qty),
+          wrap,
+          note,
+          ...(input.photo ? { photo: input.photo } : {}),
+        },
       ]);
     }
     setOpen(true);

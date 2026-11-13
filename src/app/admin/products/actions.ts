@@ -35,10 +35,10 @@ export async function saveProduct(input: ProductInput): Promise<SaveResult> {
   }
 
   // parcel size and design group are saved separately so the save_product database function stays unchanged
-  const { weight_g, length_cm, breadth_cm, height_cm, design_group, design_label } = checked.value;
+  const { weight_g, length_cm, breadth_cm, height_cm, design_group, design_label, custom_photo, photo_size, size_prices } = checked.value;
   const { error: parcelError } = await supabase
     .from("products")
-    .update({ weight_g, length_cm, breadth_cm, height_cm, design_group, design_label })
+    .update({ weight_g, length_cm, breadth_cm, height_cm, design_group, design_label, custom_photo, photo_size, size_prices })
     .eq("id", data as string);
   if (parcelError) return { ok: false, error: "The product saved, but some details (parcel size, design group) did not. Save again." };
 

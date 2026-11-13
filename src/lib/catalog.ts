@@ -7,7 +7,7 @@
  * Both then wrap it with createCatalog(). Nothing here talks to the database.
  */
 
-export type Category = "tshirt" | "hoodie" | "cap" | "keychain" | "tote" | "bottle" | "hamper";
+export type Category = "tshirt" | "hoodie" | "cap" | "keychain" | "tote" | "bottle" | "hamper" | "frame";
 
 export type Colour = { name: string; hex: string };
 
@@ -35,6 +35,9 @@ export type Product = {
   contains?: string[]; // hampers: slugs of the products inside
   designGroup: string; // products sharing a group are different prints of the same item; "" means none
   designLabel: string; // short name on the design picker; empty falls back to the product name
+  customPhoto: boolean; // the customer uploads a photo for this item (a photo frame, or a hamper holding one)
+  photoSize: FrameSizeId; // frame size when the item has no size choice, for example a hamper
+  sizePrices: Record<string, number>; // price per size; a size not listed uses `price`
   weightG: number; // packed parcel weight in grams, for the delivery cost
 };
 
@@ -46,6 +49,7 @@ export const categories: { id: Category; label: string; slug: string; intro: str
   { id: "bottle", label: "Bottles", slug: "bottles", intro: "A verse to sip by, all day long." },
   { id: "keychain", label: "Keychains", slug: "keychains", intro: "Little keepsakes that travel with you." },
   { id: "hamper", label: "Hampers", slug: "hampers", intro: "Chosen, wrapped and ready to give." },
+  { id: "frame", label: "Photo frames", slug: "photo-frames", intro: "Your favourite moment, printed and framed." },
 ];
 
 export const categoryLabels = Object.fromEntries(categories.map((c) => [c.id, c.label])) as Record<
@@ -58,6 +62,30 @@ export const categoryOf = (product: Product) => categories.find((c) => c.id === 
 
 /** The standard clothing sizes, shared by every size-based product. */
 export const STANDARD_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
+
+/**
+ * Photo frame sizes. All A sizes share one shape (the long side is 1.414 times the short side),
+ * so a photo cropped for A4 is also the right shape for A3 or A5. `mm` is width by height, upright.
+ */
+export type FrameSizeId = "A5" | "A4" | "A3";
+export const FRAME_SIZES: { id: FrameSizeId; label: string; mm: [number, number] }[] = [
+  { id: "A5", label: "A5 · half of A4", mm: [148, 210] },
+  { id: "A4", label: "A4", mm: [210, 297] },
+  { id: "A3", label: "A3", mm: [297, 420] },
+];
+export const frameSizeIds: string[] = FRAME_SIZES.map((f) => f.id);
+export const frameSpec = (size: string | undefined) => FRAME_SIZES.find((f) => f.id === size);
+
+/** The price of one piece in a given size. A size with no price of its own uses the product price. */
+export const priceFor = (product: Pick<Product, "price" | "sizePrices">, size?: string) =>
+  (size && product.sizePrices[size]) || product.price;
+
+/** The lowest price a product is sold at, and whether the price varies by size ("From ₹799"). */
+export function fromPrice(product: Pick<Product, "price" | "sizePrices">) {
+  const all = [product.price, ...Object.values(product.sizePrices)].filter((n) => n > 0);
+  const low = Math.min(...all);
+  return { price: low, from: all.some((n) => n !== low) };
+}
 
 /** Key for one variant in `stock`: "Colour/Size", or just the part that exists. */
 export const variantKey = (colour?: string, size?: string) =>

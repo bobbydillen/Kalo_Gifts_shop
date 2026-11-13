@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useBag } from "@/components/bag/BagProvider";
 import { ProductArt } from "@/components/product/ProductArt";
-import { formatPrice, type Product } from "@/lib/catalog";
+import { formatPrice, fromPrice, type Product } from "@/lib/catalog";
 
 /**
  * Product tile for grids. The whole tile opens the product page.
@@ -67,7 +67,10 @@ export function ProductCard({ product }: { product: Product }) {
             {product.name}
           </Link>
         </h3>
-        <p className="shrink-0 text-gold-light">{formatPrice(product.price)}</p>
+        <p className="shrink-0 text-gold-light">
+          {fromPrice(product).from && <span className="mr-1 text-xs text-faint">From</span>}
+          {formatPrice(fromPrice(product).price)}
+        </p>
       </div>
       <p className="mt-1.5 text-sm text-mist">{product.line}</p>
       {product.colours.length > 0 && (

@@ -126,6 +126,7 @@ export function CheckoutView() {
           qty: l.qty,
           wrap: l.wrap,
           note: l.note,
+          photo: l.photo?.path,
         })),
       });
       if (!result.ok) {
@@ -273,7 +274,12 @@ export function CheckoutView() {
                   className="grid size-16 shrink-0 place-items-center rounded-xl"
                   style={{ background: `radial-gradient(circle at 50% 42%, color-mix(in srgb, ${line.product.tint} 60%, transparent), var(--color-pine-2) 80%)` }}
                 >
-                  <ProductArt category={line.product.category} className="w-8 text-gold-light" />
+                  {line.photo ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- a small saved preview of the customer's photo
+                    <img src={line.photo.thumb} alt="Your photo" className="size-full rounded-xl object-cover" />
+                  ) : (
+                    <ProductArt category={line.product.category} className="w-8 text-gold-light" />
+                  )}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block font-serif text-lg leading-tight">
@@ -283,6 +289,7 @@ export function CheckoutView() {
                     {[line.colour, line.size].filter(Boolean).join(" · ")}
                     {line.wrap ? " · gift wrap" : ""}
                     {line.note ? " · handwritten card" : ""}
+                    {line.photo ? " · your photo" : ""}
                   </span>
                   {line.left <= 0 && <span className="block text-sm text-berry-light">Sold out. Remove it from your bag.</span>}
                 </span>

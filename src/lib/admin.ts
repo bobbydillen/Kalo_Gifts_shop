@@ -28,6 +28,7 @@ export type OrderItemRow = {
   unit_price: number;
   gift_wrap: boolean;
   card_message: string;
+  photo_path: string | null; // the customer's cropped photo, for items that need one
 };
 
 export type OrderEventRow = { id: string; status: string; note: string; created_at: string };

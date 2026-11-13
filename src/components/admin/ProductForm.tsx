@@ -5,7 +5,7 @@ import { useState, useTransition, type ReactNode } from "react";
 import { deleteProduct, saveProduct } from "@/app/admin/products/actions";
 import { ProductPhotos } from "@/components/admin/ProductPhotos";
 import { slugify, validateProduct, type AdminImage, type ProductInput } from "@/lib/admin-products";
-import { categories, STANDARD_SIZES, type Category } from "@/lib/catalog";
+import { categories, FRAME_SIZES, STANDARD_SIZES, type Category } from "@/lib/catalog";
 
 const field =
   "mt-2 block w-full rounded-xl border border-hair-2 bg-night/60 px-4 py-3 text-cream placeholder:text-faint focus:border-gold focus:outline-none";
@@ -42,6 +42,11 @@ export function ProductForm({
   const [slugTouched, setSlugTouched] = useState(false);
   const [category, setCategory] = useState<Category>(initial?.category ?? "tshirt");
   const [price, setPrice] = useState(String(initial?.price ?? ""));
+  const [customPhoto, setCustomPhoto] = useState(initial?.custom_photo ?? false);
+  const [photoSize, setPhotoSize] = useState(initial?.photo_size ?? "A4");
+  const [sizePrices, setSizePrices] = useState<Record<string, string>>(
+    Object.fromEntries(Object.entries(initial?.size_prices ?? {}).map(([k, v]) => [k, String(v)])),
+  );
   const [designGroup, setDesignGroup] = useState(initial?.design_group ?? "");
   const [designLabel, setDesignLabel] = useState(initial?.design_label ?? "");
   const [weight, setWeight] = useState(String(initial?.weight_g ?? 300));
@@ -98,6 +103,13 @@ export function ProductForm({
       category,
       price: Number(price),
       weight_g: Number(weight),
+      custom_photo: customPhoto,
+      photo_size: photoSize,
+      size_prices: Object.fromEntries(
+        Object.entries(sizePrices)
+          .filter(([size, v]) => sizes.includes(size) && v.trim() !== "")
+          .map(([size, v]) => [size, Number(v)]),
+      ),
       design_group: designGroup,
       design_label: designLabel,
       length_cm: Number(length),
@@ -398,6 +410,63 @@ export function ProductForm({
             ))}
           </div>
           {isHamper && <p className="mt-2 text-sm text-faint">For a hamper, the size is the size chosen for the clothing inside it.</p>}
+        </fieldset>
+
+        <fieldset>
+          <legend className="text-sm text-mist">
+            Photo frame sizes <span className="text-faint">(for a frame, choose the sizes you sell)</span>
+          </legend>
+          <div className="mt-3 flex flex-wrap gap-3">
+            {FRAME_SIZES.map((f) => (
+              <label key={f.id} className="chip flex cursor-pointer items-center gap-2 has-[:checked]:border-cream has-[:checked]:bg-cream has-[:checked]:text-night">
+                <input type="checkbox" className="sr-only" checked={sizes.includes(f.id)} onChange={() => setSizes(toggle(sizes, f.id))} />
+                {f.label}
+              </label>
+            ))}
+          </div>
+          {FRAME_SIZES.some((f) => sizes.includes(f.id)) && (
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              {FRAME_SIZES.filter((f) => sizes.includes(f.id)).map((f) => (
+                <label key={f.id} className="block text-sm text-mist">
+                  Price for {f.id} (₹)
+                  <input
+                    inputMode="numeric"
+                    value={sizePrices[f.id] ?? ""}
+                    onChange={(e) => setSizePrices({ ...sizePrices, [f.id]: e.target.value.replace(/\D/g, "") })}
+                    placeholder={price || "main price"}
+                    className={field}
+                  />
+                </label>
+              ))}
+            </div>
+          )}
+          <p className="mt-2 text-xs text-faint">Leave a price empty to use the main price. The main price is also what shows as the &ldquo;From&rdquo; price if it is the lowest.</p>
+        </fieldset>
+
+        <fieldset className="rounded-2xl border border-hair-2 p-5">
+          <legend className="px-2 text-sm text-mist">Customer photo</legend>
+          <label className="flex cursor-pointer items-start gap-3">
+            <input type="checkbox" className="mt-1 size-5 accent-[#d4b373]" checked={customPhoto} onChange={(e) => setCustomPhoto(e.target.checked)} />
+            <span className="text-sm">
+              The customer uploads a photo for this item
+              <span className="block text-xs text-faint">
+                For a custom photo frame, or a hamper that contains one. The customer crops their photo to the right shape and sees it in a frame before ordering.
+              </span>
+            </span>
+          </label>
+          {customPhoto && !FRAME_SIZES.some((f) => sizes.includes(f.id)) && (
+            <label className="mt-4 block max-w-xs text-sm text-mist">
+              Frame size in this item
+              <select value={photoSize} onChange={(e) => setPhotoSize(e.target.value)} className={field}>
+                {FRAME_SIZES.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.label}
+                  </option>
+                ))}
+              </select>
+              <span className="mt-1 block text-xs text-faint">Used when the item has no frame size choice, for example a hamper.</span>
+            </label>
+          )}
         </fieldset>
       </Section>
 

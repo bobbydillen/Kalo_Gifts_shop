@@ -75,7 +75,12 @@ export function BagDrawer() {
                         background: `radial-gradient(circle at 50% 42%, color-mix(in srgb, ${line.product.tint} 60%, transparent), var(--color-pine-2) 80%)`,
                       }}
                     >
-                      <ProductArt category={line.product.category} className="w-10 text-gold-light" />
+                      {line.photo ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- a small saved preview of the customer's photo
+                        <img src={line.photo.thumb} alt="Your photo" className="size-full rounded-2xl object-cover" />
+                      ) : (
+                        <ProductArt category={line.product.category} className="w-10 text-gold-light" />
+                      )}
                     </Link>
 
                     <div className="min-w-0 flex-1">

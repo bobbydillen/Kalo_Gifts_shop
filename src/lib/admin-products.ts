@@ -1,4 +1,4 @@
-import { categories, STANDARD_SIZES, type Category } from "@/lib/catalog";
+import { categories, frameSizeIds, STANDARD_SIZES, type Category } from "@/lib/catalog";
 
 /** What the product editor sends to be saved. Used by the form and checked again on the server. */
 export type ProductInput = {
@@ -8,6 +8,9 @@ export type ProductInput = {
   category: Category;
   price: number; // whole rupees
   weight_g: number; // parcel weight in grams (for shipping)
+  custom_photo: boolean; // the customer uploads a photo for this item
+  photo_size: string; // frame size when the item has no size choice (A5, A4 or A3)
+  size_prices: Record<string, number>; // price per size; a size not listed uses the main price
   design_group: string; // same group = different prints of one item
   design_label: string; // short name on the design picker
   length_cm: number;
@@ -88,8 +91,16 @@ export function validateProduct(
   const design_group = text(raw.design_group, 60).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
   const design_label = text(raw.design_label, 40);
 
-  const sizes = list(raw.sizes).filter((s): s is string => STANDARD_SIZES.includes(s as string));
+  const sizes = list(raw.sizes).filter((s): s is string => STANDARD_SIZES.includes(s as string) || frameSizeIds.includes(s as string));
   if (new Set(sizes).size !== sizes.length) return fail("A size is listed twice.");
+
+  const size_prices: Record<string, number> = {};
+  for (const [size, value] of Object.entries(raw.size_prices ?? {})) {
+    if (!sizes.includes(size)) continue; // size was removed
+    if (!Number.isInteger(value) || value < 1 || value > 1_000_000) return fail(`Enter the price for ${size} in whole rupees, or leave it empty.`);
+    size_prices[size] = value;
+  }
+  const photo_size = frameSizeIds.includes(raw.photo_size) ? raw.photo_size : "A4";
 
   const colours: ProductInput["colours"] = [];
   for (const c of list(raw.colours)) {
@@ -128,6 +139,9 @@ export function validateProduct(
       ...parcel,
       design_group,
       design_label,
+      custom_photo: Boolean(raw.custom_photo),
+      photo_size,
+      size_prices,
       line: text(raw.line, 200),
       description: text(raw.description, 2000),
       message_text: text(raw.message_text, 400),

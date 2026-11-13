@@ -39,6 +39,22 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
   const items = order.order_items;
   const events = [...order.order_events].sort((a, b) => a.created_at.localeCompare(b.created_at));
   const cards = items.filter((i) => i.card_message.trim());
+
+  // customer photos live in a private bucket, so admins get short-lived links to view and download them
+  const photos = new Map<string, { view: string | null; download: string | null }>();
+  await Promise.all(
+    items
+      .filter((i) => i.photo_path)
+      .map(async (i) => {
+        const bucket = supabase.storage.from("customer-photos");
+        const ext = i.photo_path!.split(".").pop();
+        const [view, download] = await Promise.all([
+          bucket.createSignedUrl(i.photo_path!, 3600),
+          bucket.createSignedUrl(i.photo_path!, 3600, { download: `kalo-order-${order.number}-${i.product_slug}.${ext}` }),
+        ]);
+        photos.set(i.id, { view: view.data?.signedUrl ?? null, download: download.data?.signedUrl ?? null });
+      }),
+  );
   const address = [order.ship_line1, order.ship_line2, `${order.ship_city}, ${order.ship_state} ${order.ship_pincode}`]
     .filter(Boolean)
     .join("\n");
@@ -86,6 +102,23 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
                           </span>
                         )}
                       </p>
+                      {item.photo_path && (
+                        <div className="mt-4 rounded-xl border border-gold/40 p-3">
+                          <p className="text-xs uppercase tracking-[0.18em] text-gold-light">Customer photo · print at {item.size || "the frame size"}</p>
+                          {photos.get(item.id)?.view ? (
+                            // eslint-disable-next-line @next/next/no-img-element -- a short-lived private link, not a public image
+                            <img src={photos.get(item.id)!.view!} alt="Customer photo to print" className="mt-3 max-h-72 rounded-lg" />
+                          ) : (
+                            <p className="mt-2 text-sm text-berry-light">The photo could not be loaded. Refresh the page.</p>
+                          )}
+                          {photos.get(item.id)?.download && (
+                            <a href={photos.get(item.id)!.download!} className="btn btn-outline mt-3">
+                              Download print file
+                            </a>
+                          )}
+                          <p className="mt-2 text-xs text-faint">Already cropped to the exact shape. The download link works for an hour; reload the page for a new one.</p>
+                        </div>
+                      )}
                     </div>
                     <p className="tabular-nums text-gold-light">{formatPrice(item.unit_price * item.qty)}</p>
                   </div>

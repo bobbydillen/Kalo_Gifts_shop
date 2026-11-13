@@ -1,15 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { MAX_QTY, useBag } from "@/components/bag/BagProvider";
 import { CardPrompt } from "@/components/bag/CardPrompt";
 import { GiftOptions } from "@/components/bag/GiftOptions";
+import { PhotoDesigner, type PhotoHandle } from "@/components/product/PhotoDesigner";
 import { SizeGuide } from "@/components/product/SizeGuide";
 import { useCatalog } from "@/components/catalog/CatalogProvider";
 import { useProductColour } from "@/components/product/ProductColour";
 import { useSettings } from "@/components/settings/SettingsProvider";
-import { formatPrice, type Product } from "@/lib/catalog";
+import { formatPrice, frameSizeIds, type Product } from "@/lib/catalog";
 import { unitPrice } from "@/lib/gifting";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
 const LOW_STOCK = 3; // at or below this, show how many are left
 
@@ -25,11 +27,42 @@ export function ProductBuy({ product }: { product: Product }) {
   const [promptOpen, setPromptOpen] = useState(false);
 
   // the card offer appears once per visit, and only when no card has been written yet
-  const addToBag = (note: string) => {
-    add({ slug: product.slug, colour, size, qty, wrap: gift.wrap, note });
+  // photo frames: the customer's cropped photo is uploaded when they add the item
+  const designer = useRef<PhotoHandle>(null);
+  const [photoReady, setPhotoReady] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [photoMessage, setPhotoMessage] = useState<string | null>(null);
+
+  const addToBag = async (note: string) => {
+    let photo;
+    if (product.customPhoto) {
+      setBusy(true);
+      setPhotoMessage(null);
+      const result = await designer.current?.exportPhoto();
+      if (!result) {
+        setBusy(false);
+        setPhotoMessage("Please add your photo first.");
+        return;
+      }
+      const path = `uploads/${crypto.randomUUID()}.${result.ext}`;
+      const { error } = await supabaseBrowser()
+        .storage.from("customer-photos")
+        .upload(path, result.blob, { contentType: result.blob.type, upsert: false });
+      setBusy(false);
+      if (error) {
+        setPhotoMessage("We could not save your photo. Check your connection and try again.");
+        return;
+      }
+      photo = { path, thumb: result.thumb, orient: result.orient };
+    }
+    add({ slug: product.slug, colour, size, qty, wrap: gift.wrap, note, photo });
     setGift((g) => ({ ...g, note }));
   };
   const tryAdd = () => {
+    if (product.customPhoto && !photoReady) {
+      setPhotoMessage("Please add your photo first.");
+      return;
+    }
     let seen = false;
     try {
       seen = sessionStorage.getItem("kalo-card-prompt") === "1";
@@ -45,7 +78,7 @@ export function ProductBuy({ product }: { product: Product }) {
   const left = stockFor(product, colour, size);
   const soldOut = (!needsSize || size !== undefined) && left <= 0;
   const maxQty = Math.min(MAX_QTY, left);
-  const total = unitPrice(product, gift, settings) * qty;
+  const total = unitPrice(product, gift, settings, size) * qty;
 
   const pickColour = (name: string) => {
     setColour(name);
@@ -54,8 +87,20 @@ export function ProductBuy({ product }: { product: Product }) {
     setQty(1);
   };
 
+  const frameSize = size && frameSizeIds.includes(size) ? size : (product.sizes.find((s) => frameSizeIds.includes(s)) ?? product.photoSize);
+  const frameColour = product.colours.find((c) => c.name === colour)?.hex ?? "#1b1b1b";
+  const hasClothingSizes = product.sizes.some((s) => !frameSizeIds.includes(s));
+
   const label =
-    needsSize && !size ? "Choose a size" : soldOut ? "Sold out" : `Add to bag · ${formatPrice(total)}`;
+    needsSize && !size
+      ? "Choose a size"
+      : soldOut
+        ? "Sold out"
+        : busy
+          ? "Saving your photo…"
+          : product.customPhoto && !photoReady
+            ? "Add your photo first"
+            : `Add to bag · ${formatPrice(total)}`;
 
   return (
     <div className="space-y-7">
@@ -88,7 +133,7 @@ export function ProductBuy({ product }: { product: Product }) {
             <legend className="float-left text-sm text-mist">
               Size{size && <span className="text-cream">: {size}</span>}
             </legend>
-            <SizeGuide />
+            {hasClothingSizes && <SizeGuide />}
           </div>
           <div className="mt-3 flex flex-wrap gap-2.5">
             {product.sizes.map((s) => {
@@ -112,6 +157,20 @@ export function ProductBuy({ product }: { product: Product }) {
             })}
           </div>
         </fieldset>
+      )}
+
+      {product.customPhoto && (
+        <section aria-labelledby="your-photo-title">
+          <h2 id="your-photo-title" className="mb-3 font-sans text-sm text-mist">
+            Your photo
+          </h2>
+          <PhotoDesigner ref={designer} size={frameSize} frameColour={frameColour} onReady={setPhotoReady} />
+          {photoMessage && (
+            <p role="alert" className="mt-3 rounded-xl border border-berry-light/50 bg-berry/20 px-4 py-3 text-sm">
+              {photoMessage}
+            </p>
+          )}
+        </section>
       )}
 
       <section aria-labelledby="gift-options-title">
@@ -148,7 +207,7 @@ export function ProductBuy({ product }: { product: Product }) {
 
         <button
           type="button"
-          disabled={(needsSize && !size) || soldOut}
+          disabled={(needsSize && !size) || soldOut || busy}
           onClick={tryAdd}
           className="btn btn-gold h-14 flex-1 disabled:pointer-events-none disabled:opacity-55 disabled:saturate-50"
         >

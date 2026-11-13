@@ -48,6 +48,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
         qty: Number(i.qty),
         wrap: Boolean(i.wrap),
         note: typeof i.note === "string" ? i.note.slice(0, 1000) : "",
+        photo: typeof i.photo === "string" ? i.photo.slice(0, 120) : "",
       })),
     },
   });

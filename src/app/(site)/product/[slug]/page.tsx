@@ -10,7 +10,7 @@ import { ProductColourProvider } from "@/components/product/ProductColour";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { Rise } from "@/components/ui/Rise";
-import { categoryOf, createCatalog, formatPrice } from "@/lib/catalog";
+import { categoryOf, createCatalog, formatPrice, fromPrice } from "@/lib/catalog";
 import { getProducts } from "@/lib/catalog-data";
 
 export async function generateStaticParams() {
@@ -85,7 +85,10 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
               <p className="kicker">{category.label}</p>
               <h1 className="mt-4 text-[clamp(2.5rem,5.5vw,4.5rem)]">{product.name}</h1>
               <p className="mt-4 text-lg text-mist">{product.line}</p>
-              <p className="mt-6 font-serif text-4xl text-gold-light">{formatPrice(product.price)}</p>
+              <p className="mt-6 font-serif text-4xl text-gold-light">
+                {fromPrice(product).from && <span className="mr-2 font-sans text-base text-faint">From</span>}
+                {formatPrice(fromPrice(product).price)}
+              </p>
             </Rise>
 
             <Rise delay={180} className="mt-9 border-t border-hair pt-8">

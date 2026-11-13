@@ -27,7 +27,7 @@ export async function sendOrderEmails(order: { number: number; total: number }, 
     const names = new Map(products.map((p) => [p.slug, p.name]));
     lines = items.map((i) => {
       const options = [i.colour, i.size].filter(Boolean).join(", ");
-      const extras = [i.wrap ? "gift wrap" : "", i.note ? `card: "${i.note}"` : ""].filter(Boolean).join("; ");
+      const extras = [i.wrap ? "gift wrap" : "", i.note ? `card: "${i.note}"` : "", i.photo ? "customer photo (download it in the admin order)" : ""].filter(Boolean).join("; ");
       return `${names.get(i.slug) ?? i.slug} x ${i.qty}${options ? ` (${options})` : ""}${extras ? ` - ${extras}` : ""}`;
     });
   } catch (err) {

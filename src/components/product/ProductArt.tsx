@@ -44,6 +44,13 @@ const art: Record<Category, React.ReactNode> = {
       <path d="M42 62h36M42 84h36" />
     </>
   ),
+  frame: (
+    <>
+      <rect x="22" y="14" width="76" height="92" rx="3" />
+      <rect x="32" y="24" width="56" height="72" />
+      <path d="M32 82l16-18 12 12 10-8 18 16M70 42a6 6 0 1 0 .01 0" />
+    </>
+  ),
   hamper: (
     <>
       <path d="M20 56h80v46H20ZM14 42h92v14H14ZM60 42v60" />

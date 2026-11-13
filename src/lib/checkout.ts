@@ -27,6 +27,7 @@ export type OrderLineInput = {
   qty: number;
   wrap: boolean;
   note: string;
+  photo?: string; // where the customer's photo was uploaded, for items that need one
 };
 
 export type PlaceOrderInput = CheckoutDetails & { items: OrderLineInput[]; expectedTotal: number };
@@ -104,6 +105,8 @@ export function describeOrderError(message: string): { text: string; refresh?: b
       return { text: `Check the quantity of ${detail || "an item"}.` };
     case "OUT_OF_STOCK":
       return { text: `${detail || "An item"} has just sold out in that size or colour. Remove it or choose another.`, refresh: true };
+    case "PHOTO_REQUIRED":
+      return { text: `Your photo for ${detail || "an item"} was not saved. Remove it from your bag and add it again with your photo.` };
     case "CARD_TOO_LONG":
       return { text: "A card message is too long. Shorten it in your bag." };
     case "PRICE_CHANGED":
