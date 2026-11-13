@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition, type FormEvent } from "react";
-import { placeOrder } from "@/app/(site)/checkout/actions";
+import { lookupPincodeAction, placeOrder } from "@/app/(site)/checkout/actions";
 import { useBag } from "@/components/bag/BagProvider";
 import { useCatalog } from "@/components/catalog/CatalogProvider";
 import { ProductArt } from "@/components/product/ProductArt";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { formatPrice } from "@/lib/catalog";
 import { INDIAN_STATES, validateDetails } from "@/lib/checkout";
+import type { PincodeResult } from "@/lib/pincode";
 import { shippingFee } from "@/lib/shipping";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useCustomer } from "@/lib/use-customer";
@@ -36,10 +37,43 @@ export function CheckoutView() {
   const [state, setState] = useState("");
   const [pincode, setPincode] = useState("");
   const [note, setNote] = useState("");
+  const [area, setArea] = useState(""); // the local area chosen from the pincode's own list
+
+  // The pincode decides the city, state and local areas, so they cannot be made up.
+  type Lookup = { status: "idle" } | { status: "loading" } | PincodeResult;
+  const [looked, setLooked] = useState<{ pin: string; result: PincodeResult } | null>(null);
+  const validPin = /^[1-9]\d{5}$/.test(pincode);
+  const lookup: Lookup = !validPin ? { status: "idle" } : looked?.pin === pincode ? looked.result : { status: "loading" };
+  const found = lookup.status === "found" ? lookup.info : null;
+  const resolvedCity = found ? found.city : city;
+  const resolvedState = found?.stateKnown ? found.state : state;
 
   // A signed-in customer: use their verified email or phone, and the details from their latest order.
   const customer = useCustomer();
   const [prefilled, setPrefilled] = useState(false);
+
+  useEffect(() => {
+    if (!validPin) return;
+    let live = true;
+    lookupPincodeAction(pincode)
+      .then((result) => {
+        if (!live) return;
+        setLooked({ pin: pincode, result });
+        if (result.status !== "found") return;
+        // an address saved from an earlier order starts with its area: pick it again
+        const match = result.info.areas.find((a) => line2.toLowerCase().startsWith(a.toLowerCase()));
+        if (match && !area) {
+          setArea(match);
+          setLine2(line2.slice(match.length).replace(/^[,\s]+/, ""));
+        }
+      })
+      .catch(() => live && setLooked({ pin: pincode, result: { status: "unavailable" } }));
+    return () => {
+      live = false;
+    };
+    // line2 and area are read once when the lookup finishes; they should not restart the lookup
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pincode, validPin]);
   useEffect(() => {
     if ((!customer.phone && !customer.email) || prefilled) return;
     let live = true;
@@ -72,7 +106,7 @@ export function CheckoutView() {
 
   // delivery depends on the state, the parcel weight and the order value; the database works it out again
   const weightG = lines.reduce((sum, l) => sum + (catalog.productBySlug(l.slug)?.weightG ?? 300) * l.qty, 0);
-  const delivery = state ? shippingFee(settings.shippingRates, settings.freeShippingOver, state, weightG, subtotal) : null;
+  const delivery = resolvedState ? shippingFee(settings.shippingRates, settings.freeShippingOver, resolvedState, weightG, subtotal) : null;
   const total = subtotal + (delivery ?? 0);
   const unavailable = lines.some((l) => l.left <= 0);
 
@@ -105,7 +139,23 @@ export function CheckoutView() {
     e.preventDefault();
     setError(null);
 
-    const details = validateDetails({ phone, email, name, line1, line2, city, state, pincode, note });
+    if (lookup.status === "loading") {
+      setError("Checking your pincode. One moment, then try again.");
+      return;
+    }
+    if (lookup.status === "not-found") {
+      setError("We could not find that pincode. Please check it. If it is right, message us on WhatsApp and we will help.");
+      return;
+    }
+    if (found && found.areas.length > 0 && !area) {
+      setError("Choose your area from the list.");
+      return;
+    }
+    const fullLine2 = [area, line2.trim()].filter(Boolean).join(", ");
+    const details = validateDetails(
+      { phone, email, name, line1, line2: fullLine2, city: resolvedCity, state: resolvedState, pincode, note },
+      { trustedPlace: lookup.status === "found" },
+    );
     if (!details.ok) {
       setError(details.error);
       return;
@@ -219,18 +269,6 @@ export function CheckoutView() {
             Delivery <em>address</em>
           </legend>
           <div className="mt-5 grid gap-5 sm:grid-cols-2">
-            <label className="block text-sm text-mist sm:col-span-2">
-              Address
-              <input required autoComplete="address-line1" maxLength={200} value={line1} onChange={(e) => setLine1(e.target.value)} placeholder="House or flat number, street" className={field} />
-            </label>
-            <label className="block text-sm text-mist sm:col-span-2">
-              Area or landmark <span className="text-faint">(optional)</span>
-              <input autoComplete="address-line2" maxLength={200} value={line2} onChange={(e) => setLine2(e.target.value)} className={field} />
-            </label>
-            <label className="block text-sm text-mist">
-              City or town
-              <input required autoComplete="address-level2" maxLength={80} value={city} onChange={(e) => setCity(e.target.value)} className={field} />
-            </label>
             <label className="block text-sm text-mist">
               Pincode
               <input
@@ -241,18 +279,70 @@ export function CheckoutView() {
                 value={pincode}
                 onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
                 className={field}
+                aria-describedby="pincode-status"
               />
             </label>
+            <div className="text-sm text-mist" id="pincode-status" aria-live="polite">
+              <span className="block">City and state</span>
+              <div className="mt-2 flex min-h-[3.125rem] items-center rounded-xl border border-hair bg-night/40 px-4 py-3">
+                {lookup.status === "found" ? (
+                  <span className="text-cream">
+                    {found!.city}, {resolvedState}
+                  </span>
+                ) : lookup.status === "loading" ? (
+                  <span className="text-faint">Checking your pincode…</span>
+                ) : lookup.status === "not-found" ? (
+                  <span className="text-berry-light">We could not find this pincode. Please check it.</span>
+                ) : lookup.status === "unavailable" ? (
+                  <span className="text-faint">Fill these in below</span>
+                ) : (
+                  <span className="text-faint">Filled in from your pincode</span>
+                )}
+              </div>
+            </div>
+
+            {lookup.status === "unavailable" && (
+              <>
+                <label className="block text-sm text-mist">
+                  City or town
+                  <input required autoComplete="address-level2" maxLength={80} value={city} onChange={(e) => setCity(e.target.value)} className={field} />
+                </label>
+                <label className="block text-sm text-mist">
+                  State
+                  <select required autoComplete="address-level1" value={state} onChange={(e) => setState(e.target.value)} className={field}>
+                    <option value="">Choose your state</option>
+                    {INDIAN_STATES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <p className="text-xs text-faint sm:col-span-2">We could not check your pincode just now, so please type your city and choose your state.</p>
+              </>
+            )}
+
+            {found && found.areas.length > 0 && (
+              <label className="block text-sm text-mist sm:col-span-2">
+                Area
+                <select required value={area} onChange={(e) => setArea(e.target.value)} className={field}>
+                  <option value="">Choose your area</option>
+                  {found.areas.map((a) => (
+                    <option key={a} value={a}>
+                      {a}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+
             <label className="block text-sm text-mist sm:col-span-2">
-              State
-              <select required autoComplete="address-level1" value={state} onChange={(e) => setState(e.target.value)} className={field}>
-                <option value="">Choose your state</option>
-                {INDIAN_STATES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
+              House or flat number and street
+              <input required autoComplete="address-line1" maxLength={200} value={line1} onChange={(e) => setLine1(e.target.value)} placeholder="For example: Flat 502, Akshaya The Belvedere, NH 4" className={field} />
+            </label>
+            <label className="block text-sm text-mist sm:col-span-2">
+              Landmark <span className="text-faint">(optional)</span>
+              <input autoComplete="address-line2" maxLength={150} value={line2} onChange={(e) => setLine2(e.target.value)} placeholder="Near the temple, opposite the bus stop" className={field} />
             </label>
             <label className="block text-sm text-mist sm:col-span-2">
               Note for delivery <span className="text-faint">(optional)</span>

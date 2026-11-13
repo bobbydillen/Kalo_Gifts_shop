@@ -1,5 +1,7 @@
 /** Checkout: the details a customer enters, how they are checked, and how errors are worded. */
 
+import { checkAddressLine, checkName, checkOptionalLine, checkPlace, looksFakePhone } from "@/lib/address-check";
+
 export const INDIAN_STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
   "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
@@ -44,26 +46,42 @@ export function cleanPhone(raw: string) {
   return /^[6-9]\d{9}$/.test(digits) ? digits : "";
 }
 
-/** Checks and cleans the details. Used by the form for quick feedback and again on the server. */
+/**
+ * Checks and cleans the details. Used by the form for quick feedback and again on the server.
+ * `trustedPlace` is true when the city and state came from the pincode lookup, so they are not
+ * checked as hand-typed text.
+ */
 export function validateDetails(
   raw: CheckoutDetails,
+  opts: { trustedPlace?: boolean } = {},
 ): { ok: true; value: CheckoutDetails } | { ok: false; error: string } {
   const fail = (error: string) => ({ ok: false as const, error });
 
   const phone = cleanPhone(typeof raw?.phone === "string" ? raw.phone : "");
   if (!phone) return fail("Enter a 10-digit Indian mobile number.");
+  if (looksFakePhone(phone)) return fail("That mobile number does not look right. Please check it.");
 
   const email = text(raw.email, 200).toLowerCase();
   if (!isEmail(email)) return fail("Enter a valid email address. We use it to send your order details and let you see your orders.");
 
-  const name = text(raw.name, 80);
-  if (name.length < 2) return fail("Enter your name.");
+  const name = text(raw.name, 80).replace(/\s+/g, " ");
+  const nameProblem = checkName(name);
+  if (nameProblem) return fail(nameProblem);
 
-  const line1 = text(raw.line1, 200);
-  if (line1.length < 3) return fail("Enter your address.");
+  const line1 = text(raw.line1, 200).replace(/\s+/g, " ");
+  const lineProblem = checkAddressLine(line1);
+  if (lineProblem) return fail(lineProblem);
 
-  const city = text(raw.city, 80);
+  const line2 = text(raw.line2, 200).replace(/\s+/g, " ");
+  const line2Problem = checkOptionalLine(line2);
+  if (line2Problem) return fail(line2Problem);
+
+  const city = text(raw.city, 80).replace(/\s+/g, " ");
   if (city.length < 2) return fail("Enter your city or town.");
+  if (!opts.trustedPlace) {
+    const cityProblem = checkPlace(city);
+    if (cityProblem) return fail(cityProblem);
+  }
 
   const state = text(raw.state, 60);
   if (!INDIAN_STATES.includes(state)) return fail("Choose your state.");
@@ -73,7 +91,7 @@ export function validateDetails(
 
   return {
     ok: true,
-    value: { phone, email, name, line1, line2: text(raw.line2, 200), city, state, pincode, note: text(raw.note, 300) },
+    value: { phone, email, name, line1, line2, city, state, pincode, note: text(raw.note, 300) },
   };
 }
 
@@ -89,6 +107,8 @@ export function describeOrderError(message: string): { text: string; refresh?: b
       return { text: "Enter a 10-digit Indian mobile number." };
     case "BAD_PINCODE":
       return { text: "Enter a valid 6-digit pincode." };
+    case "PINCODE_UNKNOWN":
+      return { text: "We could not find that pincode. Please check it. If it is right, message us on WhatsApp and we will help." };
     case "BAD_EMAIL":
       return { text: "Enter a valid email address." };
     case "BAD_NAME":

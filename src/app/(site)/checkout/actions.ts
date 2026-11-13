@@ -3,8 +3,14 @@
 import { createClient } from "@supabase/supabase-js";
 import { after } from "next/server";
 import { cleanPhone, describeOrderError, validateDetails, type PlaceOrderInput } from "@/lib/checkout";
+import { lookupPincode, type PincodeResult } from "@/lib/pincode";
 import { sendOrderEmails } from "@/lib/order-email";
 import { supabaseServer } from "@/lib/supabase/server";
+
+/** Called by the checkout form as soon as a 6-digit pincode is typed. */
+export async function lookupPincodeAction(pin: string): Promise<PincodeResult> {
+  return lookupPincode(typeof pin === "string" ? pin.trim() : "");
+}
 
 export type PlaceOrderResult =
   | { ok: true; number: number; total: number }
@@ -16,7 +22,17 @@ export type PlaceOrderResult =
  * input and passes it on, so a tampered request cannot change what the order costs.
  */
 export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
-  const details = validateDetails(input);
+  // The city and state come from the pincode's own records, not from what the form sent, so they
+  // cannot be made up. If the lookup service is down the typed values are used (still checked).
+  const pin = typeof input?.pincode === "string" ? input.pincode.trim() : "";
+  const place = await lookupPincode(pin);
+  if (place.status === "not-found") return { ok: false, error: "We could not find that pincode. Please check it. If it is right, message us on WhatsApp and we will help." };
+  const checked =
+    place.status === "found"
+      ? { ...input, city: place.info.city, state: place.info.stateKnown ? place.info.state : input.state }
+      : input;
+
+  const details = validateDetails(checked, { trustedPlace: place.status === "found" });
   if (!details.ok) return { ok: false, error: details.error };
 
   // A customer who has proved their phone number with a code orders under that number,
