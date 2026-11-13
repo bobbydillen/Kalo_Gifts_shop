@@ -21,7 +21,7 @@ export default async function EditProductPage({ params, searchParams }: PageProp
       .select("*, product_colours(name, hex, position), stock(colour, size, qty), product_images(id, path, position, colour)")
       .eq("id", id)
       .maybeSingle(),
-    supabase.from("products").select("slug, name").neq("category", "hamper").neq("id", id).order("name"),
+    supabase.from("products").select("slug, name, design_group").neq("category", "hamper").neq("id", id).order("name"),
   ]);
   if (!product) notFound();
 
@@ -32,6 +32,8 @@ export default async function EditProductPage({ params, searchParams }: PageProp
     category: product.category as Category,
     price: product.price,
     weight_g: product.weight_g,
+    design_group: product.design_group ?? "",
+    design_label: product.design_label ?? "",
     length_cm: product.length_cm,
     breadth_cm: product.breadth_cm,
     height_cm: product.height_cm,

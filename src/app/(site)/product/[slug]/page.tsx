@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ProductArt } from "@/components/product/ProductArt";
 import { ProductBuy } from "@/components/product/ProductBuy";
+import { DesignPicker } from "@/components/product/DesignPicker";
 import { ProductColourProvider } from "@/components/product/ProductColour";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Reveal } from "@/components/ui/Reveal";
@@ -40,6 +41,7 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
   const category = categoryOf(product);
   const inside = catalog.hamperContents(product);
   const related = catalog.relatedTo(product);
+  const designs = catalog.designsOf(product);
 
   return (
     <>
@@ -87,6 +89,7 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
             </Rise>
 
             <Rise delay={180} className="mt-9 border-t border-hair pt-8">
+              <DesignPicker current={product} others={designs} />
               <ProductBuy product={product} />
             </Rise>
 

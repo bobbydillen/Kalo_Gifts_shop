@@ -18,6 +18,8 @@ type Row = {
   christmas: boolean;
   contains: string[];
   weight_g: number;
+  design_group: string;
+  design_label: string;
   product_colours: { name: string; hex: string; position: number }[];
   stock: { colour: string; size: string; qty: number }[];
   product_images: { path: string; position: number; colour: string }[];
@@ -75,5 +77,7 @@ export async function getProducts(): Promise<Product[]> {
     christmas: row.christmas,
     contains: row.category === "hamper" ? row.contains : undefined,
     weightG: row.weight_g,
+    designGroup: row.design_group,
+    designLabel: row.design_label,
   }));
 }

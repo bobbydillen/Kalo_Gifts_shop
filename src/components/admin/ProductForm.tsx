@@ -29,7 +29,7 @@ export function ProductForm({
   images,
 }: {
   initial?: ProductInput & { id: string };
-  others: { slug: string; name: string }[]; // non-hamper products, for the hamper picker
+  others: { slug: string; name: string; design_group?: string }[]; // non-hamper products, for the hamper picker
   images: AdminImage[];
 }) {
   const router = useRouter();
@@ -42,6 +42,8 @@ export function ProductForm({
   const [slugTouched, setSlugTouched] = useState(false);
   const [category, setCategory] = useState<Category>(initial?.category ?? "tshirt");
   const [price, setPrice] = useState(String(initial?.price ?? ""));
+  const [designGroup, setDesignGroup] = useState(initial?.design_group ?? "");
+  const [designLabel, setDesignLabel] = useState(initial?.design_label ?? "");
   const [weight, setWeight] = useState(String(initial?.weight_g ?? 300));
   const [length, setLength] = useState(String(initial?.length_cm ?? 25));
   const [breadth, setBreadth] = useState(String(initial?.breadth_cm ?? 20));
@@ -96,6 +98,8 @@ export function ProductForm({
       category,
       price: Number(price),
       weight_g: Number(weight),
+      design_group: designGroup,
+      design_label: designLabel,
       length_cm: Number(length),
       breadth_cm: Number(breadth),
       height_cm: Number(height),
@@ -216,6 +220,38 @@ export function ProductForm({
             />
           </label>
         </div>
+
+        <fieldset className="rounded-2xl border border-hair-2 p-5">
+          <legend className="px-2 text-sm text-mist">
+            Other designs <span className="text-faint">(optional)</span>
+          </legend>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block text-sm text-mist">
+              Design group
+              <input
+                list="design-groups"
+                value={designGroup}
+                maxLength={60}
+                onChange={(e) => setDesignGroup(e.target.value)}
+                placeholder="for example mood-mug"
+                className={field}
+              />
+              <datalist id="design-groups">
+                {[...new Set(others.map((o) => o.design_group).filter(Boolean))].map((g) => (
+                  <option key={g} value={g} />
+                ))}
+              </datalist>
+            </label>
+            <label className="block text-sm text-mist">
+              Name for this design
+              <input value={designLabel} maxLength={40} onChange={(e) => setDesignLabel(e.target.value)} placeholder="for example Cross" className={field} />
+            </label>
+          </div>
+          <p className="mt-3 text-xs text-faint">
+            Give every print of the same item the same design group. Customers then see the other designs on this product page and can switch
+            between them. Leave empty for a product with only one design.
+          </p>
+        </fieldset>
 
         <fieldset className="rounded-2xl border border-hair-2 p-5">
           <legend className="px-2 text-sm text-mist">

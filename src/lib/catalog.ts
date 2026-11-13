@@ -33,6 +33,8 @@ export type Product = {
   tag?: string;
   christmas: boolean; // part of the Christmas edit
   contains?: string[]; // hampers: slugs of the products inside
+  designGroup: string; // products sharing a group are different prints of the same item; "" means none
+  designLabel: string; // short name on the design picker; empty falls back to the product name
   weightG: number; // packed parcel weight in grams, for the delivery cost
 };
 
@@ -90,6 +92,10 @@ export function createCatalog(products: Product[]) {
   const hamperContents = (hamper: Product) =>
     (hamper.contains ?? []).map((slug) => bySlug.get(slug)).filter((p): p is Product => Boolean(p));
 
+  /** The other prints of the same item (products in the same design group), in shop order. */
+  const designsOf = (product: Product) =>
+    product.designGroup ? products.filter((p) => p.designGroup === product.designGroup && p.slug !== product.slug) : [];
+
   /** Other products to suggest on a product page: same category first, then the rest. */
   function relatedTo(product: Product, count = 4) {
     const others = products.filter((p) => p.slug !== product.slug);
@@ -124,6 +130,7 @@ export function createCatalog(products: Product[]) {
     christmasProducts,
     hampers,
     hamperContents,
+    designsOf,
     relatedTo,
     stockFor,
   };

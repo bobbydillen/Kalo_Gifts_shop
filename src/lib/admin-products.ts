@@ -8,6 +8,8 @@ export type ProductInput = {
   category: Category;
   price: number; // whole rupees
   weight_g: number; // parcel weight in grams (for shipping)
+  design_group: string; // same group = different prints of one item
+  design_label: string; // short name on the design picker
   length_cm: number;
   breadth_cm: number;
   height_cm: number;
@@ -82,6 +84,10 @@ export function validateProduct(
     if (!Number.isInteger(side) || side < 1 || side > 200) return fail("Enter the parcel size in whole centimetres.");
   }
 
+  // a group is a short lowercase key such as "mood-mug"; products with the same key are linked
+  const design_group = text(raw.design_group, 60).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  const design_label = text(raw.design_label, 40);
+
   const sizes = list(raw.sizes).filter((s): s is string => STANDARD_SIZES.includes(s as string));
   if (new Set(sizes).size !== sizes.length) return fail("A size is listed twice.");
 
@@ -120,6 +126,8 @@ export function validateProduct(
       category: raw.category,
       price,
       ...parcel,
+      design_group,
+      design_label,
       line: text(raw.line, 200),
       description: text(raw.description, 2000),
       message_text: text(raw.message_text, 400),

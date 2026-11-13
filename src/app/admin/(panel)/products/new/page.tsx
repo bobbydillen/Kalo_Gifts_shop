@@ -6,7 +6,7 @@ export const metadata = { title: "New product" };
 
 export default async function NewProductPage() {
   const supabase = await supabaseServer();
-  const { data: others } = await supabase.from("products").select("slug, name").neq("category", "hamper").order("name");
+  const { data: others } = await supabase.from("products").select("slug, name, design_group").neq("category", "hamper").order("name");
 
   return (
     <div className="max-w-3xl">
