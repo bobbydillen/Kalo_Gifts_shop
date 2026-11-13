@@ -6,6 +6,7 @@ import { Snowfall } from "@/components/effects/Snowfall";
 import { SettingsProvider } from "@/components/settings/SettingsProvider";
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
+import { WhatsAppButton } from "@/components/site/WhatsAppButton";
 import { getProducts } from "@/lib/catalog-data";
 import { getSettings } from "@/lib/settings-data";
 
@@ -23,6 +24,7 @@ export default async function SiteLayout({ children }: LayoutProps<"/">) {
             <main className="flex-1">{children}</main>
             <Footer />
             <BagDrawer />
+            <WhatsAppButton />
           </BagProvider>
         </CatalogProvider>
       </SettingsProvider>
