@@ -1,25 +1,34 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useProductColour } from "@/components/product/ProductColour";
+import { photosFor } from "@/lib/catalog";
 
 /**
  * The product pictures: one large photo with a row of small ones underneath to switch between.
  * With a single photo (or none) it shows just the large picture; `fallback` is the line drawing.
  */
 export function ProductGallery({
-  images,
+  images: allImages,
+  imageColours,
   name,
   tint,
   tag,
   fallback,
 }: {
   images: string[];
+  imageColours: string[];
   name: string;
   tint: string;
   tag?: string;
   fallback: ReactNode;
 }) {
-  const [index, setIndex] = useState(0);
+  const { colour } = useProductColour();
+  const images = photosFor({ images: allImages, imageColours }, colour);
+  // start again at the first photo whenever the colour changes
+  const [picked, setPicked] = useState({ colour, index: 0 });
+  const index = picked.colour === colour ? picked.index : 0;
+  const setIndex = (n: number) => setPicked({ colour, index: n });
   const current = Math.min(index, Math.max(images.length - 1, 0));
   const go = (n: number) => setIndex((n + images.length) % images.length);
 

@@ -28,7 +28,7 @@ export type ProductInput = {
   stock: { colour: string; size: string; qty: number }[];
 };
 
-export type AdminImage = { id: string; path: string; position: number };
+export type AdminImage = { id: string; path: string; position: number; colour: string };
 
 export const slugify = (text: string) =>
   text

@@ -20,7 +20,7 @@ type Row = {
   weight_g: number;
   product_colours: { name: string; hex: string; position: number }[];
   stock: { colour: string; size: string; qty: number }[];
-  product_images: { path: string; position: number }[];
+  product_images: { path: string; position: number; colour: string }[];
 };
 
 /**
@@ -40,7 +40,7 @@ export async function getProducts(): Promise<Product[]> {
 
   const { data, error } = await supabase
     .from("products")
-    .select("*, product_colours(name, hex, position), stock(colour, size, qty), product_images(path, position)")
+    .select("*, product_colours(name, hex, position), stock(colour, size, qty), product_images(path, position, colour)")
     .eq("active", true)
     .order("sort")
     .order("name")
@@ -66,6 +66,10 @@ export async function getProducts(): Promise<Product[]> {
       row.stock.map((s) => [variantKey(s.colour || undefined, s.size || undefined), s.qty]),
     ),
     images: [...row.product_images].sort((a, b) => a.position - b.position).map((i) => photos + i.path),
+    // a photo tagged with a colour the product no longer has counts as shared
+    imageColours: [...row.product_images]
+      .sort((a, b) => a.position - b.position)
+      .map((i) => (row.product_colours.some((c) => c.name === i.colour) ? i.colour : "")),
     tint: row.tint,
     tag: row.tag ?? undefined,
     christmas: row.christmas,

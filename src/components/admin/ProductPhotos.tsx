@@ -33,7 +33,7 @@ async function prepare(file: File): Promise<{ blob: Blob; ext: string; type: str
   return { blob: file, ext: file.type.split("/")[1].replace("jpeg", "jpg"), type: file.type };
 }
 
-export function ProductPhotos({ productId, images }: { productId: string; images: AdminImage[] }) {
+export function ProductPhotos({ productId, images, colours }: { productId: string; images: AdminImage[]; colours: string[] }) {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -90,6 +90,15 @@ export function ProductPhotos({ productId, images }: { productId: string; images
     setBusy(false);
   }
 
+  async function setColour(image: AdminImage, colour: string) {
+    setBusy(true);
+    setMessage(null);
+    const { error } = await supabaseBrowser().from("product_images").update({ colour }).eq("id", image.id);
+    if (error) setMessage("The colour could not be saved. Try again.");
+    await done();
+    setBusy(false);
+  }
+
   async function move(index: number, direction: -1 | 1) {
     const other = sorted[index + direction];
     const me = sorted[index];
@@ -111,6 +120,24 @@ export function ProductPhotos({ productId, images }: { productId: string; images
             <li key={image.id} className="overflow-hidden rounded-2xl border border-hair bg-night/40">
               {/* eslint-disable-next-line @next/next/no-img-element -- admin preview of an uploaded photo */}
               <img src={photoUrl(image.path)} alt="" className="aspect-[4/5] w-full object-cover" />
+              {colours.length > 0 && (
+                <label className="block px-2 pt-2 text-xs text-faint">
+                  Shows for
+                  <select
+                    value={colours.includes(image.colour) ? image.colour : ""}
+                    disabled={busy}
+                    onChange={(e) => setColour(image, e.target.value)}
+                    className="mt-1 block w-full rounded-lg border border-hair-2 bg-pine px-2 py-1.5 text-sm text-cream"
+                  >
+                    <option value="">All colours</option>
+                    {colours.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <div className="flex items-center justify-between gap-2 p-2 text-sm">
                 <span className="px-2 text-xs text-faint">{i === 0 ? "Main photo" : `Photo ${i + 1}`}</span>
                 <span className="flex gap-1">
@@ -168,6 +195,12 @@ export function ProductPhotos({ productId, images }: { productId: string; images
         </p>
       )}
       <p className="mt-3 text-sm text-faint">The main photo is the one shown on cards and at the top of the product page.</p>
+      {colours.length > 0 && (
+        <p className="mt-2 text-sm text-faint">
+          Choose a colour under each photo so it shows when a customer picks that colour. Photos set to “All colours” (for example a lifestyle
+          shot) appear after the colour&apos;s own photos. Add and save the colours above first.
+        </p>
+      )}
     </div>
   );
 }

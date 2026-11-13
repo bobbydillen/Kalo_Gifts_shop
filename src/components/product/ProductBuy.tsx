@@ -5,6 +5,7 @@ import { MAX_QTY, useBag } from "@/components/bag/BagProvider";
 import { GiftOptions } from "@/components/bag/GiftOptions";
 import { SizeGuide } from "@/components/product/SizeGuide";
 import { useCatalog } from "@/components/catalog/CatalogProvider";
+import { useProductColour } from "@/components/product/ProductColour";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { formatPrice, type Product } from "@/lib/catalog";
 import { unitPrice } from "@/lib/gifting";
@@ -16,7 +17,7 @@ export function ProductBuy({ product }: { product: Product }) {
   const { add } = useBag();
   const { stockFor } = useCatalog();
   const settings = useSettings();
-  const [colour, setColour] = useState(product.colours[0]?.name);
+  const { colour, setColour } = useProductColour();
   const [size, setSize] = useState<string>();
   const [qty, setQty] = useState(1);
   const [gift, setGift] = useState({ wrap: false, note: "" });

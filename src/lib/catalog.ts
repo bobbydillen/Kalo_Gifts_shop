@@ -28,6 +28,7 @@ export type Product = {
    */
   stock: Record<string, number>;
   images: string[]; // photo addresses; empty shows the line drawing instead
+  imageColours: string[]; // the colour each photo shows, same order as images; "" belongs to every colour
   tint: string; // glow colour behind the product
   tag?: string;
   christmas: boolean; // part of the Christmas edit
@@ -63,6 +64,19 @@ export const variantKey = (colour?: string, size?: string) =>
 export const formatPrice = (rupees: number) => `₹${rupees.toLocaleString("en-IN")}`;
 
 export type Catalog = ReturnType<typeof createCatalog>;
+
+/**
+ * The photos to show for a chosen colour: that colour's own photos first, then the ones shared
+ * by every colour. If no photo is tagged with a colour, or none matches, every photo is shown.
+ */
+export function photosFor(product: Pick<Product, "images" | "imageColours">, colour: string | undefined): string[] {
+  const { images, imageColours } = product;
+  if (!colour || !imageColours.some((c) => c)) return images;
+  const own = images.filter((_, i) => imageColours[i] === colour);
+  const shared = images.filter((_, i) => !imageColours[i]);
+  const picked = [...own, ...shared];
+  return picked.length ? picked : images;
+}
 
 export function createCatalog(products: Product[]) {
   const bySlug = new Map(products.map((p) => [p.slug, p]));

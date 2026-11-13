@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ProductArt } from "@/components/product/ProductArt";
 import { ProductBuy } from "@/components/product/ProductBuy";
+import { ProductColourProvider } from "@/components/product/ProductColour";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { Rise } from "@/components/ui/Rise";
@@ -63,11 +64,13 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
           </ol>
         </nav>
 
+        <ProductColourProvider first={product.colours[0]?.name}>
         <div className="mt-8 grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
           {/* Picture. Stays in view on wide screens while the details scroll. */}
           <Rise className="lg:sticky lg:top-28 lg:self-start">
             <ProductGallery
               images={product.images}
+              imageColours={product.imageColours}
               name={product.name}
               tint={product.tint}
               tag={product.tag}
@@ -166,6 +169,7 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
             </Rise>
           </div>
         </div>
+        </ProductColourProvider>
       </div>
 
       <section className="border-t border-hair bg-pine/60">

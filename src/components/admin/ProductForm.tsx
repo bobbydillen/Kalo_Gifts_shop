@@ -426,7 +426,7 @@ export function ProductForm({
 
       <Section title={<>Pho<em>tos</em></>}>
         {initial ? (
-          <ProductPhotos productId={initial.id} images={images} />
+          <ProductPhotos productId={initial.id} images={images} colours={colours.map((c) => c.name.trim()).filter(Boolean)} />
         ) : (
           <p className="text-mist">Save the product first, then you can add photos.</p>
         )}
