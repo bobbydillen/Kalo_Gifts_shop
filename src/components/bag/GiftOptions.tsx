@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import { CardPhoto } from "@/components/bag/CardPhoto";
 import { CardPreview } from "@/components/bag/CardPreview";
+import { MessageIdeas } from "@/components/bag/MessageIdeas";
 import { formatPrice, type Product } from "@/lib/catalog";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { canGiftWrap } from "@/lib/gifting";
@@ -113,6 +114,7 @@ export function GiftOptions({
               {note.length}/{giftCardMaxChars}
             </span>
           </p>
+          <MessageIdeas value={note} max={giftCardMaxChars} onPick={(text) => onChange({ wrap, note: text })} />
           <div className="mt-3">
             <CardPreview message={note} />
           </div>

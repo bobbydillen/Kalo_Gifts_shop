@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { CardPreview } from "@/components/bag/CardPreview";
+import { MessageIdeas } from "@/components/bag/MessageIdeas";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { formatPrice } from "@/lib/catalog";
 
@@ -81,6 +82,7 @@ export function CardPrompt({
         <p className="mt-1 text-right text-xs tabular-nums text-faint" aria-live="polite">
           {message.length}/{giftCardMaxChars}
         </p>
+        <MessageIdeas value={message} max={giftCardMaxChars} onPick={setMessage} />
 
         <div className="mt-3">
           <CardPreview message={message} />
