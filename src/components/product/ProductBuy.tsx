@@ -9,7 +9,7 @@ import { SizeGuide } from "@/components/product/SizeGuide";
 import { useCatalog } from "@/components/catalog/CatalogProvider";
 import { useProductColour } from "@/components/product/ProductColour";
 import { useSettings } from "@/components/settings/SettingsProvider";
-import { formatPrice, frameSizeIds, type Product } from "@/lib/catalog";
+import { formatPrice, frameSizeIds, frameSpec, type Product } from "@/lib/catalog";
 import { unitPrice } from "@/lib/gifting";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
@@ -157,6 +157,18 @@ export function ProductBuy({ product }: { product: Product }) {
             })}
           </div>
         </fieldset>
+      )}
+
+      {product.sizes.some((s) => frameSizeIds.includes(s)) && (
+        <p className="-mt-3 text-xs text-faint">
+          {size && frameSpec(size)
+            ? `${frameSpec(size)!.label}: ${frameSpec(size)!.mm[0]} × ${frameSpec(size)!.mm[1]} mm`
+            : product.sizes
+                .map((id) => frameSpec(id))
+                .filter(Boolean)
+                .map((f) => `${f!.id} ${f!.mm[0]} × ${f!.mm[1]} mm`)
+                .join(" · ")}
+        </p>
       )}
 
       {product.customPhoto && (
