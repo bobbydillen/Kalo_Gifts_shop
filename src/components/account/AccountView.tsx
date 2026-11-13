@@ -200,6 +200,9 @@ type OrderRow = {
   total: number;
   created_at: string;
   tracking_note: string;
+  courier_name: string | null;
+  awb_code: string | null;
+  tracking_url: string | null;
   subtotal: number;
   delivery_fee: number;
   customer_note: string;
@@ -231,7 +234,7 @@ function Orders({ who }: { who: string }) {
       const { data, error } = await supabaseBrowser()
         .from("orders")
         .select(
-          "id, number, status, total, created_at, tracking_note, subtotal, delivery_fee, customer_note, ship_phone, ship_name, ship_line1, ship_line2, ship_city, ship_state, ship_pincode, order_items(product_name, colour, size, qty, unit_price, gift_wrap, card_message), order_events(status, note, created_at)",
+          "id, number, status, total, created_at, tracking_note, courier_name, awb_code, tracking_url, subtotal, delivery_fee, customer_note, ship_phone, ship_name, ship_line1, ship_line2, ship_city, ship_state, ship_pincode, order_items(product_name, colour, size, qty, unit_price, gift_wrap, card_message), order_events(status, note, created_at)",
         )
         .order("created_at", { ascending: false });
       if (live) setOrders(error ? "error" : (data as OrderRow[]));
@@ -325,6 +328,19 @@ function Orders({ who }: { who: string }) {
                           </li>
                         ))}
                     </ol>
+                  )}
+                  {order.awb_code && (
+                    <p className="mt-4 rounded-xl border border-hair-2 px-4 py-3 text-sm text-mist">
+                      {order.courier_name ? `${order.courier_name} · ` : ""}Tracking number {order.awb_code}
+                      {order.tracking_url && (
+                        <>
+                          {" · "}
+                          <a href={order.tracking_url} target="_blank" rel="noopener noreferrer" className="text-gold-light underline underline-offset-4">
+                            Track your parcel
+                          </a>
+                        </>
+                      )}
+                    </p>
                   )}
                   {order.tracking_note && (
                     <p className="mt-4 rounded-xl border border-hair-2 px-4 py-3 text-sm text-mist">{order.tracking_note}</p>

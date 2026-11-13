@@ -34,6 +34,14 @@ export async function saveProduct(input: ProductInput): Promise<SaveResult> {
     return { ok: false, error: "The product could not be saved. Check you are still signed in and try again." };
   }
 
+  // parcel size is saved separately so the save_product database function stays unchanged
+  const { weight_g, length_cm, breadth_cm, height_cm } = checked.value;
+  const { error: parcelError } = await supabase
+    .from("products")
+    .update({ weight_g, length_cm, breadth_cm, height_cm })
+    .eq("id", data as string);
+  if (parcelError) return { ok: false, error: "The product saved, but its parcel size did not. Save again." };
+
   refreshShop();
   return { ok: true, id: data as string };
 }

@@ -47,6 +47,12 @@ export type OrderRow = {
   ship_pincode: string;
   customer_note: string;
   customer_email: string | null;
+  payment_method: string;
+  shiprocket_order_id: string | null;
+  awb_code: string | null;
+  courier_name: string | null;
+  tracking_url: string | null;
+  shiprocket_status: string | null;
   tracking_note: string;
   created_at: string;
 };

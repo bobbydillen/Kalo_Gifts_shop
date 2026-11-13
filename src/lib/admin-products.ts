@@ -7,6 +7,10 @@ export type ProductInput = {
   name: string;
   category: Category;
   price: number; // whole rupees
+  weight_g: number; // parcel weight in grams (for shipping)
+  length_cm: number;
+  breadth_cm: number;
+  height_cm: number;
   line: string;
   description: string;
   message_text: string;
@@ -65,6 +69,19 @@ export function validateProduct(
   const price = raw.price;
   if (!Number.isInteger(price) || price < 0 || price > 1_000_000) return fail("Enter the price in whole rupees.");
 
+  const parcel = {
+    weight_g: raw.weight_g,
+    length_cm: raw.length_cm,
+    breadth_cm: raw.breadth_cm,
+    height_cm: raw.height_cm,
+  };
+  if (!Number.isInteger(parcel.weight_g) || parcel.weight_g < 1 || parcel.weight_g > 50000) {
+    return fail("Enter the parcel weight in grams, for example 300.");
+  }
+  for (const side of [parcel.length_cm, parcel.breadth_cm, parcel.height_cm]) {
+    if (!Number.isInteger(side) || side < 1 || side > 200) return fail("Enter the parcel size in whole centimetres.");
+  }
+
   const sizes = list(raw.sizes).filter((s): s is string => STANDARD_SIZES.includes(s as string));
   if (new Set(sizes).size !== sizes.length) return fail("A size is listed twice.");
 
@@ -102,6 +119,7 @@ export function validateProduct(
       name,
       category: raw.category,
       price,
+      ...parcel,
       line: text(raw.line, 200),
       description: text(raw.description, 2000),
       message_text: text(raw.message_text, 400),

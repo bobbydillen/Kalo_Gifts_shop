@@ -42,6 +42,10 @@ export function ProductForm({
   const [slugTouched, setSlugTouched] = useState(false);
   const [category, setCategory] = useState<Category>(initial?.category ?? "tshirt");
   const [price, setPrice] = useState(String(initial?.price ?? ""));
+  const [weight, setWeight] = useState(String(initial?.weight_g ?? 300));
+  const [length, setLength] = useState(String(initial?.length_cm ?? 25));
+  const [breadth, setBreadth] = useState(String(initial?.breadth_cm ?? 20));
+  const [height, setHeight] = useState(String(initial?.height_cm ?? 5));
   const [line, setLine] = useState(initial?.line ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [tag, setTag] = useState(initial?.tag ?? "");
@@ -91,6 +95,10 @@ export function ProductForm({
       name,
       category,
       price: Number(price),
+      weight_g: Number(weight),
+      length_cm: Number(length),
+      breadth_cm: Number(breadth),
+      height_cm: Number(height),
       line,
       description,
       message_text: messageText,
@@ -208,6 +216,35 @@ export function ProductForm({
             />
           </label>
         </div>
+
+        <fieldset className="rounded-2xl border border-hair-2 p-5">
+          <legend className="px-2 text-sm text-mist">
+            Parcel for shipping <span className="text-faint">(packed, with the box)</span>
+          </legend>
+          <div className="grid gap-4 sm:grid-cols-4">
+            {[
+              ["Weight (grams)", weight, setWeight],
+              ["Length (cm)", length, setLength],
+              ["Width (cm)", breadth, setBreadth],
+              ["Height (cm)", height, setHeight],
+            ].map(([label, value, set]) => (
+              <label key={label as string} className="block text-sm text-mist">
+                {label as string}
+                <input
+                  required
+                  inputMode="numeric"
+                  value={value as string}
+                  onChange={(e) => (set as (v: string) => void)(e.target.value.replace(/\D/g, ""))}
+                  className={field}
+                />
+              </label>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-faint">
+            Sent to Shiprocket to price and book the delivery. When an order has several items the weights are added up
+            and the heights are stacked.
+          </p>
+        </fieldset>
 
         <label className="block text-sm text-mist">
           One-line hook <span className="text-faint">(shown under the name)</span>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { OrderControls } from "@/components/admin/OrderControls";
 import { PrintButton } from "@/components/admin/PrintButton";
+import { ShiprocketPanel } from "@/components/admin/ShiprocketPanel";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import {
   formatDate,
@@ -187,6 +188,24 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
               Message on WhatsApp
             </a>
             <p className="mt-2 text-xs text-faint">Opens WhatsApp with a message ready for you to check and send.</p>
+          </section>
+
+          <section aria-labelledby="ship-rocket-title" className="rounded-2xl border border-hair bg-pine p-6">
+            <h2 id="ship-rocket-title" className="text-2xl">
+              Ship with <em>Shiprocket</em>
+            </h2>
+            <div className="mt-5">
+              <ShiprocketPanel
+                id={order.id}
+                sent={Boolean(order.shiprocket_order_id)}
+                paymentMethod={order.payment_method}
+                shiprocketOrderId={order.shiprocket_order_id}
+                courier={order.courier_name}
+                awb={order.awb_code}
+                trackingUrl={order.tracking_url}
+                status={order.shiprocket_status}
+              />
+            </div>
           </section>
 
           <section aria-labelledby="update-title" className="rounded-2xl border border-hair bg-pine p-6">
