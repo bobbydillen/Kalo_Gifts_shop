@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Bodoni_Moda, Manrope } from "next/font/google";
+import { Bodoni_Moda, Caveat, Manrope } from "next/font/google";
 import { site } from "@/lib/site";
 import "./globals.css";
 
@@ -7,6 +7,13 @@ const bodoni = Bodoni_Moda({
   variable: "--font-bodoni",
   subsets: ["latin"],
   style: ["normal", "italic"],
+  display: "swap",
+});
+
+// handwriting for the gift card preview
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin"],
   display: "swap",
 });
 
@@ -39,7 +46,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${bodoni.variable} ${manrope.variable} antialiased`}
+      className={`${bodoni.variable} ${manrope.variable} ${caveat.variable} antialiased`}
       suppressHydrationWarning
     >
       <head>

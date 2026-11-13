@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { MAX_QTY, useBag } from "@/components/bag/BagProvider";
+import { CardPrompt } from "@/components/bag/CardPrompt";
 import { GiftOptions } from "@/components/bag/GiftOptions";
 import { SizeGuide } from "@/components/product/SizeGuide";
 import { useCatalog } from "@/components/catalog/CatalogProvider";
@@ -21,6 +22,24 @@ export function ProductBuy({ product }: { product: Product }) {
   const [size, setSize] = useState<string>();
   const [qty, setQty] = useState(1);
   const [gift, setGift] = useState({ wrap: false, note: "" });
+  const [promptOpen, setPromptOpen] = useState(false);
+
+  // the card offer appears once per visit, and only when no card has been written yet
+  const addToBag = (note: string) => {
+    add({ slug: product.slug, colour, size, qty, wrap: gift.wrap, note });
+    setGift((g) => ({ ...g, note }));
+  };
+  const tryAdd = () => {
+    let seen = false;
+    try {
+      seen = sessionStorage.getItem("kalo-card-prompt") === "1";
+      sessionStorage.setItem("kalo-card-prompt", "1");
+    } catch {
+      seen = true; // storage unavailable: never nag
+    }
+    if (!gift.note.trim() && !seen) setPromptOpen(true);
+    else addToBag(gift.note);
+  };
 
   const needsSize = product.sizes.length > 0;
   const left = stockFor(product, colour, size);
@@ -130,12 +149,21 @@ export function ProductBuy({ product }: { product: Product }) {
         <button
           type="button"
           disabled={(needsSize && !size) || soldOut}
-          onClick={() => add({ slug: product.slug, colour, size, qty, wrap: gift.wrap, note: gift.note })}
+          onClick={tryAdd}
           className="btn btn-gold h-14 flex-1 disabled:pointer-events-none disabled:opacity-55 disabled:saturate-50"
         >
           {label}
         </button>
       </div>
+
+      <CardPrompt
+        open={promptOpen}
+        onClose={() => setPromptOpen(false)}
+        onChoose={(message) => {
+          setPromptOpen(false);
+          addToBag(message);
+        }}
+      />
 
       <p aria-live="polite" className="min-h-5 text-sm text-gold-light">
         {!soldOut && left <= LOW_STOCK && (!needsSize || size) ? `Only ${left} left` : ""}

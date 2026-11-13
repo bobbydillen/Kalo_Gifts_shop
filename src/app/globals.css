@@ -20,6 +20,7 @@
 
   --font-serif: var(--font-bodoni), "Didot", "Bodoni 72", Georgia, serif;
   --font-sans: var(--font-manrope), "Helvetica Neue", Arial, sans-serif;
+  --font-script: var(--font-caveat), "Segoe Script", "Bradley Hand", cursive;
 
   /* glide: large, calm movement. bounce: small things that should feel alive. */
   --ease-glide: cubic-bezier(0.16, 1, 0.3, 1);

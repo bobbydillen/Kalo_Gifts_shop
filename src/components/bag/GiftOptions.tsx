@@ -1,6 +1,8 @@
 "use client";
 
 import { useId, useState } from "react";
+import { CardPhoto } from "@/components/bag/CardPhoto";
+import { CardPreview } from "@/components/bag/CardPreview";
 import { formatPrice, type Product } from "@/lib/catalog";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { canGiftWrap } from "@/lib/gifting";
@@ -89,6 +91,8 @@ export function GiftOptions({
         price={giftCardPrice}
       />
 
+      {!cardOpen && <CardPhoto />}
+
       {cardOpen && (
         <div className="rounded-2xl border border-hair-2 bg-night/40 p-4">
           <label htmlFor={noteId} className="text-xs uppercase tracking-[0.18em] text-faint">
@@ -109,6 +113,12 @@ export function GiftOptions({
               {note.length}/{giftCardMaxChars}
             </span>
           </p>
+          <div className="mt-3">
+            <CardPreview message={note} />
+          </div>
+          <div className="mt-3">
+            <CardPhoto />
+          </div>
         </div>
       )}
     </div>
