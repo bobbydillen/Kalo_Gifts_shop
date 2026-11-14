@@ -61,6 +61,18 @@ export async function CataloguePage({
         {items.length} {items.length === 1 ? "piece" : "pieces"}
       </p>
 
+      {items.length === 0 && (
+        <div className="mt-6 rounded-2xl border border-dashed border-hair-2 px-6 py-14 text-center">
+          <p className="font-serif text-3xl">
+            Coming <em>soon</em>
+          </p>
+          <p className="mx-auto mt-3 max-w-md text-mist">We are getting this collection ready. Have a look at everything else in the meantime.</p>
+          <Link href="/gifts" className="btn btn-outline mt-6">
+            See all gifts
+          </Link>
+        </div>
+      )}
+
       <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 lg:grid-cols-4">
         {items.map((product, i) => (
           <Reveal key={product.slug} delay={(i % 4) * 80}>

@@ -14,6 +14,7 @@ const baseLinks = [
   { label: "Gifts", href: "/gifts" },
   { label: "Loved ones", href: "/#loved-ones" },
   { label: "Hampers", href: "/gifts/hampers" },
+  { label: "Photo frames", href: "/gifts/photo-frames" },
 ];
 
 /** Thin strip above the header. */
