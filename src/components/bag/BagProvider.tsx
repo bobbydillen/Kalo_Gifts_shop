@@ -84,6 +84,7 @@ export function BagProvider({ children }: { children: ReactNode }) {
       stored.flatMap((line) => {
         const product = productBySlug(line.slug);
         if (!product) return []; // product was removed from the catalogue
+        if (product.buildYourOwn && !line.parts) return []; // an empty hamper is never kept in the bag
         if (line.parts) {
           // a build-your-own hamper is always one hamper, priced from what is inside it
           const price = hamperPrice(line.parts, productBySlug, settings).total;
@@ -102,6 +103,7 @@ export function BagProvider({ children }: { children: ReactNode }) {
   const add = useCallback((input: AddInput) => {
     const product = productBySlug(input.slug);
     if (!product) return;
+    if (product.buildYourOwn && !input.parts?.length) return; // the hamper is only added from the builder, with its gifts
 
     if (input.parts?.length) {
       // each build-your-own hamper is its own line: never merged with another

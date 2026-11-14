@@ -30,6 +30,7 @@ export function HamperBuilder() {
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [round, setRound] = useState(0); // changes after each hamper is added, so the card box starts fresh
 
   if (!builder) {
     return (
@@ -97,6 +98,7 @@ export function HamperBuilder() {
     add({ slug: builder.slug, parts, note });
     setDrafts([]);
     setNote("");
+    setRound((r) => r + 1);
     setBusy(false);
   }
 
@@ -238,9 +240,10 @@ export function HamperBuilder() {
             )}
 
             <div className="mt-5">
-              <GiftOptions product={builder} wrap={false} note={note} onChange={(g) => setNote(g.note)} />
+              <GiftOptions key={round} product={builder} wrap={false} note={note} onChange={(g) => setNote(g.note)} />
             </div>
 
+            {drafts.length > 0 && (
             <dl className="mt-5 space-y-2 border-t border-hair pt-4 text-sm">
               <div className="flex justify-between text-mist">
                 <dt>Gifts</dt>
@@ -264,9 +267,10 @@ export function HamperBuilder() {
               )}
               <div className="flex justify-between pt-2 font-serif text-3xl">
                 <dt>Total</dt>
-                <dd className="tabular-nums">{formatPrice(drafts.length ? price.total + cardCost : 0)}</dd>
+                <dd className="tabular-nums">{formatPrice(price.total + cardCost)}</dd>
               </div>
             </dl>
+            )}
 
             {message && (
               <p role="alert" className="mt-4 rounded-xl border border-berry-light/50 bg-berry/20 px-4 py-3 text-sm">
