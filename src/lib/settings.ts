@@ -19,6 +19,8 @@ export type SiteSettings = {
   giftCardPrice: number; // rupees per piece
   giftCardMaxChars: number;
   checkoutOpen: boolean; // customers can place orders
+  hamperBoxFee: number; // rupees added for the box and packing of a build-your-own hamper
+  hamperDiscountPercent: number; // percent taken off the items in a build-your-own hamper
   freeShippingOver: number; // items total (rupees) at or above which delivery is free
   shippingRates: ShippingRates; // delivery charge by region and parcel weight
   // Business details shown on the Contact page, in the policies and for return chats.
@@ -43,6 +45,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   giftCardPrice: 50,
   giftCardMaxChars: 250,
   checkoutOpen: false, // stays off until payments or another way to pay are ready
+  hamperBoxFee: 99,
+  hamperDiscountPercent: 10,
   freeShippingOver: 1000,
   shippingRates: DEFAULT_SHIPPING_RATES,
   whatsappNumber: "",
@@ -66,6 +70,8 @@ export const SETTING_KEYS: Record<keyof SiteSettings, string> = {
   giftCardPrice: "gift_card_price",
   giftCardMaxChars: "gift_card_max_chars",
   checkoutOpen: "checkout_open",
+  hamperBoxFee: "hamper_box_fee",
+  hamperDiscountPercent: "hamper_discount_percent",
   freeShippingOver: "shipping_free_over",
   shippingRates: "shipping_rates",
   whatsappNumber: "whatsapp_number",
@@ -135,6 +141,8 @@ export function validateSettings(
   const whole = (v: unknown, min: number, max: number) => Number.isInteger(v) && (v as number) >= min && (v as number) <= max;
   if (!whole(raw.giftWrapPrice, 0, 5000)) return fail("Gift wrap price must be a whole number of rupees, 0 to 5000.");
   if (!whole(raw.giftCardPrice, 0, 5000)) return fail("Handwritten card price must be a whole number of rupees, 0 to 5000.");
+  if (!whole(raw.hamperBoxFee, 0, 5000)) return fail("The hamper box fee must be a whole number of rupees, 0 to 5000.");
+  if (!whole(raw.hamperDiscountPercent, 0, 50)) return fail("The hamper discount must be a whole number of percent, 0 to 50.");
   if (!whole(raw.freeShippingOver, 0, 1_000_000)) return fail("The free-delivery limit must be a whole number of rupees.");
   if (!parseRates(raw.shippingRates)) {
     return fail(`Fill in every delivery charge with a whole number of rupees, 0 to 5000, for ${ZONES.map((z) => z.label).join(", ")}.`);

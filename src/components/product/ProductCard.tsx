@@ -12,7 +12,7 @@ import { formatPrice, fromPrice, type Product } from "@/lib/catalog";
  */
 export function ProductCard({ product }: { product: Product }) {
   const { add } = useBag();
-  const href = `/product/${product.slug}`;
+  const href = product.buildYourOwn ? "/hampers/build" : `/product/${product.slug}`;
   const hasOptions = product.sizes.length > 0 || product.colours.length > 0;
   const round =
     "absolute bottom-3 right-3 z-10 grid size-11 place-items-center rounded-full bg-cream text-2xl font-light leading-none text-night shadow-lg transition-[transform,background-color] duration-500 ease-bounce hover:scale-110 hover:bg-gold-light active:scale-90 sm:bottom-4 sm:right-4 sm:size-12";
@@ -68,8 +68,14 @@ export function ProductCard({ product }: { product: Product }) {
           </Link>
         </h3>
         <p className="shrink-0 text-gold-light">
-          {fromPrice(product).from && <span className="mr-1 text-xs text-faint">From</span>}
-          {formatPrice(fromPrice(product).price)}
+          {product.buildYourOwn ? (
+            "Your choice"
+          ) : (
+            <>
+              {fromPrice(product).from && <span className="mr-1 text-xs text-faint">From</span>}
+              {formatPrice(fromPrice(product).price)}
+            </>
+          )}
         </p>
       </div>
       <p className="mt-1.5 text-sm text-mist">{product.line}</p>

@@ -11,6 +11,7 @@ import { useSettings } from "@/components/settings/SettingsProvider";
 import { formatPrice } from "@/lib/catalog";
 import { INDIAN_STATES, validateDetails } from "@/lib/checkout";
 import type { PincodeResult } from "@/lib/pincode";
+import { describePart } from "@/lib/hamper";
 import { shippingFee } from "@/lib/shipping";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useCustomer } from "@/lib/use-customer";
@@ -105,7 +106,13 @@ export function CheckoutView() {
   }, [customer.phone, customer.email, prefilled]);
 
   // delivery depends on the state, the parcel weight and the order value; the database works it out again
-  const weightG = lines.reduce((sum, l) => sum + (catalog.productBySlug(l.slug)?.weightG ?? 300) * l.qty, 0);
+  // a hamper weighs its box plus everything inside it, the same as the database counts it
+  const weightG = lines.reduce((sum, l) => {
+    if (l.parts) {
+      return sum + l.product.weightG + l.parts.reduce((n, p) => n + (catalog.productBySlug(p.slug)?.weightG ?? 300) * p.qty, 0);
+    }
+    return sum + (catalog.productBySlug(l.slug)?.weightG ?? 300) * l.qty;
+  }, 0);
   const delivery = resolvedState ? shippingFee(settings.shippingRates, settings.freeShippingOver, resolvedState, weightG, subtotal) : null;
   const total = subtotal + (delivery ?? 0);
   const unavailable = lines.some((l) => l.left <= 0);
@@ -177,6 +184,7 @@ export function CheckoutView() {
           wrap: l.wrap,
           note: l.note,
           photo: l.photo?.path,
+          parts: l.parts?.map((p) => ({ slug: p.slug, colour: p.colour, size: p.size, qty: p.qty, photo: p.photo?.path })),
         })),
       });
       if (!result.ok) {
@@ -381,6 +389,16 @@ export function CheckoutView() {
                     {line.note ? " · handwritten card" : ""}
                     {line.photo ? " · your photo" : ""}
                   </span>
+                  {line.parts && (
+                    <span className="mt-1 block space-y-0.5 text-sm text-mist">
+                      {line.parts.map((part, i) => (
+                        <span key={i} className="block">
+                          {describePart(part, catalog.productBySlug)}
+                          {part.photo ? " · your photo" : ""}
+                        </span>
+                      ))}
+                    </span>
+                  )}
                   {line.left <= 0 && <span className="block text-sm text-berry-light">Sold out. Remove it from your bag.</span>}
                 </span>
                 <span className="tabular-nums text-gold-light">{formatPrice(line.total)}</span>

@@ -65,6 +65,18 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
         wrap: Boolean(i.wrap),
         note: typeof i.note === "string" ? i.note.slice(0, 1000) : "",
         photo: typeof i.photo === "string" ? i.photo.slice(0, 120) : "",
+        // present only for a build-your-own hamper; the database treats the key itself as the signal
+        ...(Array.isArray(i.parts)
+          ? {
+              parts: i.parts.slice(0, 15).map((p) => ({
+                slug: String(p?.slug ?? ""),
+                colour: p?.colour ? String(p.colour) : "",
+                size: p?.size ? String(p.size) : "",
+                qty: Number(p?.qty),
+                photo: typeof p?.photo === "string" ? p.photo.slice(0, 120) : "",
+              })),
+            }
+          : {}),
       })),
     },
   });

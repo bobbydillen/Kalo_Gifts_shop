@@ -1,7 +1,7 @@
 import { ProductGallery } from "@/components/product/ProductGallery";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ProductArt } from "@/components/product/ProductArt";
 import { ProductBuy } from "@/components/product/ProductBuy";
@@ -37,6 +37,7 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
   const catalog = createCatalog(await getProducts());
   const product = catalog.productBySlug((await params).slug);
   if (!product) notFound();
+  if (product.buildYourOwn) redirect("/hampers/build"); // this product is the builder, not a page of its own
 
   const category = categoryOf(product);
   const inside = catalog.hamperContents(product);

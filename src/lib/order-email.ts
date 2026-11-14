@@ -28,7 +28,13 @@ export async function sendOrderEmails(order: { number: number; total: number }, 
     lines = items.map((i) => {
       const options = [i.colour, i.size].filter(Boolean).join(", ");
       const extras = [i.wrap ? "gift wrap" : "", i.note ? `card: "${i.note}"` : "", i.photo ? "customer photo (download it in the admin order)" : ""].filter(Boolean).join("; ");
-      return `${names.get(i.slug) ?? i.slug} x ${i.qty}${options ? ` (${options})` : ""}${extras ? ` - ${extras}` : ""}`;
+      const inside = (i.parts ?? [])
+        .map((p) => {
+          const opts = [p.colour, p.size].filter(Boolean).join(", ");
+          return `${names.get(p.slug) ?? p.slug} x ${p.qty}${opts ? ` (${opts})` : ""}${p.photo ? " with customer photo" : ""}`;
+        })
+        .join("; ");
+      return `${names.get(i.slug) ?? i.slug} x ${i.qty}${options ? ` (${options})` : ""}${inside ? ` [${inside}]` : ""}${extras ? ` - ${extras}` : ""}`;
     });
   } catch (err) {
     console.error("Order email could not read products", err instanceof Error ? err.message : err);

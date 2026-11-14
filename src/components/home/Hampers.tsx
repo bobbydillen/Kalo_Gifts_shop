@@ -42,6 +42,17 @@ export function Hampers({ index }: { index: number }) {
         </div>
       </Reveal>
 
+      <Reveal delay={130}>
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gold/40 bg-pine px-6 py-5">
+          <p className="font-serif text-2xl">
+            Rather <em>choose</em> your own?
+          </p>
+          <Button href="/hampers/build" arrow>
+            Build your own hamper
+          </Button>
+        </div>
+      </Reveal>
+
       <Reveal delay={160}>
         <div className="mt-8 grid gap-5 lg:grid-cols-[1.1fr_1fr]">
           <div

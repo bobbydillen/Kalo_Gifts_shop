@@ -68,6 +68,7 @@ export type ItemRow = {
   gift_wrap: boolean;
   card_message: string;
   photo_path: string | null;
+  parts: { slug: string; name: string; colour: string; size: string; qty: number; unit: number; photo: string | null }[] | null;
 };
 
 type CustomerRow = { id: string; phone: string; name: string; created_at: string };
@@ -75,7 +76,7 @@ type NoteRow = { customer_id: string; notes: string; tags: string[] };
 
 const ORDER_COLUMNS =
   "id, number, status, payment_status, payment_method, subtotal, delivery_fee, total, created_at, customer_id, customer_email, customer_note, ship_name, ship_phone, ship_city, ship_state, ship_pincode, courier_name, awb_code";
-const ITEM_COLUMNS = "order_id, product_slug, product_name, colour, size, qty, unit_price, gift_wrap, card_message, photo_path";
+const ITEM_COLUMNS = "order_id, product_slug, product_name, colour, size, qty, unit_price, gift_wrap, card_message, photo_path, parts";
 
 export const loadOrders = (db: SupabaseClient) =>
   fetchAll<OrderRow>((a, b) =>
@@ -283,6 +284,11 @@ export async function loadProductReport(db: SupabaseClient, now = Date.now()): P
   for (const i of items) {
     const o = orderBy.get(i.order_id);
     if (!o || !isCounted(o.status)) continue;
+    if (i.parts?.length) {
+      // a build-your-own hamper: each product inside it counts as sold, at its own price (before the bundle discount)
+      for (const part of i.parts) sales.push({ qty: part.qty, at: o.created_at, revenue: part.qty * part.unit, colour: part.colour, size: part.size, slug: part.slug });
+      continue;
+    }
     sales.push({ qty: i.qty, at: o.created_at, revenue: i.qty * i.unit_price, colour: i.colour, size: i.size, slug: i.product_slug });
   }
 

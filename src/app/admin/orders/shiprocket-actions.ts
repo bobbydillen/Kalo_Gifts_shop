@@ -64,11 +64,13 @@ export async function sendToShiprocket(id: string, paymentMethod: string): Promi
   if (!phone) return { ok: false, error: "The phone number on this order is not a valid Indian mobile number." };
 
   // parcel: weights add up, the longest and widest side are kept, heights stack
-  const items = order.order_items as { product_slug: string; product_name: string; qty: number; unit_price: number }[];
+  type Part = { slug: string; qty: number };
+  const items = order.order_items as { product_slug: string; product_name: string; qty: number; unit_price: number; parts: Part[] | null }[];
+  const wanted = [...new Set(items.flatMap((i) => [i.product_slug, ...(i.parts ?? []).map((p) => p.slug)]))];
   const { data: products } = await supabase
     .from("products")
     .select("slug, weight_g, length_cm, breadth_cm, height_cm")
-    .in("slug", items.map((i) => i.product_slug));
+    .in("slug", wanted);
   const bySlug = new Map((products ?? []).map((p) => [p.slug, p]));
 
   let weight = 0;
@@ -78,6 +80,8 @@ export async function sendToShiprocket(id: string, paymentMethod: string): Promi
   for (const item of items) {
     const p = bySlug.get(item.product_slug) ?? { weight_g: 300, length_cm: 25, breadth_cm: 20, height_cm: 5 };
     weight += p.weight_g * item.qty;
+    // what is packed inside a build-your-own hamper adds weight but not size: it all fits in the box
+    for (const part of item.parts ?? []) weight += (bySlug.get(part.slug)?.weight_g ?? 300) * part.qty;
     length = Math.max(length, p.length_cm);
     breadth = Math.max(breadth, p.breadth_cm);
     height += p.height_cm * item.qty;

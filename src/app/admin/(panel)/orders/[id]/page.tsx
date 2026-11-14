@@ -42,18 +42,21 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
 
   // customer photos live in a private bucket, so admins get short-lived links to view and download them
   const photos = new Map<string, { view: string | null; download: string | null }>();
+  // one entry per photo: an item's own photo, or a photo for a frame inside a hamper (keyed "<item>-<number>")
+  const photoJobs = items.flatMap((i) => [
+    ...(i.photo_path ? [{ key: i.id, path: i.photo_path, label: i.product_slug }] : []),
+    ...(i.parts ?? []).flatMap((p, n) => (p.photo ? [{ key: `${i.id}-${n}`, path: p.photo, label: `${i.product_slug}-${p.slug}` }] : [])),
+  ]);
   await Promise.all(
-    items
-      .filter((i) => i.photo_path)
-      .map(async (i) => {
-        const bucket = supabase.storage.from("customer-photos");
-        const ext = i.photo_path!.split(".").pop();
-        const [view, download] = await Promise.all([
-          bucket.createSignedUrl(i.photo_path!, 3600),
-          bucket.createSignedUrl(i.photo_path!, 3600, { download: `kalo-order-${order.number}-${i.product_slug}.${ext}` }),
-        ]);
-        photos.set(i.id, { view: view.data?.signedUrl ?? null, download: download.data?.signedUrl ?? null });
-      }),
+    photoJobs.map(async (job) => {
+      const bucket = supabase.storage.from("customer-photos");
+      const ext = job.path.split(".").pop();
+      const [view, download] = await Promise.all([
+        bucket.createSignedUrl(job.path, 3600),
+        bucket.createSignedUrl(job.path, 3600, { download: `kalo-order-${order.number}-${job.label}.${ext}` }),
+      ]);
+      photos.set(job.key, { view: view.data?.signedUrl ?? null, download: download.data?.signedUrl ?? null });
+    }),
   );
   const address = [order.ship_line1, order.ship_line2, `${order.ship_city}, ${order.ship_state} ${order.ship_pincode}`]
     .filter(Boolean)
@@ -102,6 +105,36 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
                           </span>
                         )}
                       </p>
+                      {item.parts && item.parts.length > 0 && (
+                        <div className="mt-4 rounded-xl border border-gold/40 p-3">
+                          <p className="text-xs uppercase tracking-[0.18em] text-gold-light">Pack this hamper with</p>
+                          <ul className="mt-3 space-y-3">
+                            {item.parts.map((part, n) => (
+                              <li key={n} className="text-sm">
+                                <span className="text-cream">
+                                  {part.name} × {part.qty}
+                                </span>
+                                <span className="text-faint"> {[part.colour, part.size].filter(Boolean).join(" · ")}</span>
+                                {part.photo && (
+                                  <span className="mt-2 block">
+                                    {photos.get(`${item.id}-${n}`)?.view ? (
+                                      // eslint-disable-next-line @next/next/no-img-element -- a short-lived private link, not a public image
+                                      <img src={photos.get(`${item.id}-${n}`)!.view!} alt="Customer photo to print" className="max-h-56 rounded-lg" />
+                                    ) : (
+                                      <span className="text-berry-light">The photo could not be loaded. Refresh the page.</span>
+                                    )}
+                                    {photos.get(`${item.id}-${n}`)?.download && (
+                                      <a href={photos.get(`${item.id}-${n}`)!.download!} className="btn btn-outline mt-2">
+                                        Download print file
+                                      </a>
+                                    )}
+                                  </span>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                       {item.photo_path && (
                         <div className="mt-4 rounded-xl border border-gold/40 p-3">
                           <p className="text-xs uppercase tracking-[0.18em] text-gold-light">Customer photo · print at {item.size || "the frame size"}</p>

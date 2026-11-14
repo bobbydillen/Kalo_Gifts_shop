@@ -77,6 +77,8 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
   const [businessAddress, setBusinessAddress] = useState(initial.businessAddress);
   const [gstin, setGstin] = useState(initial.gstin);
   const [grievance, setGrievance] = useState(initial.grievanceOfficer);
+  const [boxFee, setBoxFee] = useState(String(initial.hamperBoxFee));
+  const [hamperDiscount, setHamperDiscount] = useState(String(initial.hamperDiscountPercent));
   const [freeOver, setFreeOver] = useState(String(initial.freeShippingOver));
   const [rates, setRates] = useState<Record<Zone, string[]>>(() => ({
     tn: initial.shippingRates.tn.map(String),
@@ -88,7 +90,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
 
   function submit() {
     setResult(null);
-    if ([wrapPrice, cardPrice, maxChars, freeOver, ...Object.values(rates).flat()].some((v) => v.trim() === "")) {
+    if ([wrapPrice, cardPrice, maxChars, boxFee, hamperDiscount, freeOver, ...Object.values(rates).flat()].some((v) => v.trim() === "")) {
       setResult({ ok: false, text: "Fill in every number box. Type 0 where something is free." });
       return;
     }
@@ -116,6 +118,8 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
       businessAddress,
       gstin,
       grievanceOfficer: grievance,
+      hamperBoxFee: Number(boxFee),
+      hamperDiscountPercent: Number(hamperDiscount),
       freeShippingOver: Number(freeOver),
       shippingRates: {
         tn: rates.tn.map(Number) as ZoneRates,
@@ -203,6 +207,31 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
           title="Customer sign-in by email code"
           hint="Adds an Account link where customers enter a code emailed to them to see their orders. Turn on only after the email sending service and email templates are set up in Supabase and tested."
         />
+      </Section>
+
+      <Section
+        title={
+          <>
+            Build-your-own <em>hamper</em>
+          </>
+        }
+        hint="Customers pick three or more different products. The price is the items, minus the discount below, plus the box fee."
+      >
+        <div className="grid gap-5 sm:grid-cols-2">
+          <label className="block text-sm text-mist">
+            Bundle discount (% off the items)
+            <input required inputMode="numeric" value={hamperDiscount} onChange={(e) => setHamperDiscount(e.target.value.replace(/\D/g, ""))} className={field} />
+            <span className="mt-1 block text-xs text-faint">Type 0 for no discount. Most shops use 5 to 15.</span>
+          </label>
+          <label className="block text-sm text-mist">
+            Box and packing fee (₹)
+            <input required inputMode="numeric" value={boxFee} onChange={(e) => setBoxFee(e.target.value.replace(/\D/g, ""))} className={field} />
+            <span className="mt-1 block text-xs text-faint">Added once per hamper. Type 0 to make it free.</span>
+          </label>
+        </div>
+        <p className="text-xs text-faint">
+          The hamper itself (its photos, description and parcel weight) is the product called &ldquo;Build your own hamper&rdquo; under Products. Switch it off there to hide the builder.
+        </p>
       </Section>
 
       <Section

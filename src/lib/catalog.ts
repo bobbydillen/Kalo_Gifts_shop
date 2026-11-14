@@ -35,6 +35,7 @@ export type Product = {
   contains?: string[]; // hampers: slugs of the products inside
   designGroup: string; // products sharing a group are different prints of the same item; "" means none
   designLabel: string; // short name on the design picker; empty falls back to the product name
+  buildYourOwn: boolean; // the single "Build your own hamper" product; its page is the hamper builder
   customPhoto: boolean; // the customer uploads a photo for this item (a photo frame, or a hamper holding one)
   photoSize: FrameSizeId; // frame size when the item has no size choice, for example a hamper
   sizePrices: Record<string, number>; // price per size; a size not listed uses `price`
@@ -114,7 +115,11 @@ export function createCatalog(products: Product[]) {
   const productBySlug = (slug: string) => bySlug.get(slug);
   const productsIn = (category: Category) => products.filter((p) => p.category === category);
   const christmasProducts = () => products.filter((p) => p.christmas);
-  const hampers = () => productsIn("hamper");
+  // fixed hampers only; the build-your-own hamper has its own page
+  const hampers = () => productsIn("hamper").filter((p) => !p.buildYourOwn);
+  const builderProduct = () => products.find((p) => p.buildYourOwn && p.category === "hamper");
+  /** What can go inside a build-your-own hamper: every product except hampers. */
+  const buildableProducts = () => products.filter((p) => p.category !== "hamper" && !p.buildYourOwn);
 
   /** Products inside a hamper, in order. */
   const hamperContents = (hamper: Product) =>
@@ -157,6 +162,8 @@ export function createCatalog(products: Product[]) {
     productsIn,
     christmasProducts,
     hampers,
+    builderProduct,
+    buildableProducts,
     hamperContents,
     designsOf,
     relatedTo,

@@ -224,6 +224,7 @@ type OrderRow = {
     unit_price: number;
     gift_wrap: boolean;
     card_message: string;
+    parts: { name: string; colour: string; size: string; qty: number }[] | null;
   }[];
   order_events: { status: string; note: string; created_at: string }[];
 };
@@ -238,7 +239,7 @@ function Orders({ who }: { who: string }) {
       const { data, error } = await supabaseBrowser()
         .from("orders")
         .select(
-          "id, number, status, total, created_at, tracking_note, courier_name, awb_code, tracking_url, subtotal, delivery_fee, customer_note, ship_phone, ship_name, ship_line1, ship_line2, ship_city, ship_state, ship_pincode, order_items(product_name, colour, size, qty, unit_price, gift_wrap, card_message), order_events(status, note, created_at)",
+          "id, number, status, total, created_at, tracking_note, courier_name, awb_code, tracking_url, subtotal, delivery_fee, customer_note, ship_phone, ship_name, ship_line1, ship_line2, ship_city, ship_state, ship_pincode, order_items(product_name, colour, size, qty, unit_price, gift_wrap, card_message, parts), order_events(status, note, created_at)",
         )
         .order("created_at", { ascending: false });
       if (live) setOrders(error ? "error" : (data as OrderRow[]));
@@ -301,6 +302,11 @@ function Orders({ who }: { who: string }) {
                           {item.product_name} × {item.qty}
                           <span className="text-faint"> {[item.colour, item.size].filter(Boolean).join(" · ")}</span>
                           {item.gift_wrap && <span className="block text-sm text-faint">Gift wrapped</span>}
+                          {item.parts?.map((part, n) => (
+                            <span key={n} className="block text-sm text-faint">
+                              {part.name} × {part.qty} {[part.colour, part.size].filter(Boolean).join(" · ")}
+                            </span>
+                          ))}
                           {item.card_message && <span className="block text-sm text-faint">Card: “{item.card_message}”</span>}
                         </span>
                         <span className="shrink-0">{formatPrice(item.unit_price * item.qty)}</span>

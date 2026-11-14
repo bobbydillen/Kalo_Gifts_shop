@@ -29,6 +29,8 @@ export type OrderItemRow = {
   gift_wrap: boolean;
   card_message: string;
   photo_path: string | null; // the customer's cropped photo, for items that need one
+  /** For a build-your-own hamper: the products inside it, as the customer chose them. */
+  parts: { slug: string; name: string; colour: string; size: string; qty: number; unit: number; photo: string | null }[] | null;
 };
 
 export type OrderEventRow = { id: string; status: string; note: string; created_at: string };

@@ -4,15 +4,18 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { MAX_QTY, useBag } from "@/components/bag/BagProvider";
 import { GiftOptions } from "@/components/bag/GiftOptions";
+import { useCatalog } from "@/components/catalog/CatalogProvider";
 import { ProductArt } from "@/components/product/ProductArt";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { formatPrice } from "@/lib/catalog";
+import { describePart } from "@/lib/hamper";
 
 /** Slide-in bag. Opens when something is added or the Bag button is pressed. */
 export function BagDrawer() {
   const { lines, count, subtotal, isOpen, setOpen, setQty, remove, setGift } = useBag();
   const dialog = useRef<HTMLDialogElement>(null);
   const settings = useSettings();
+  const { productBySlug } = useCatalog();
 
   useEffect(() => {
     const el = dialog.current;
@@ -60,7 +63,7 @@ export function BagDrawer() {
         ) : (
           <ul className="flex-1 divide-y divide-hair overflow-y-auto px-5 sm:px-7">
             {lines.map((line) => {
-              const href = `/product/${line.slug}`;
+              const href = line.parts ? "/hampers/build" : `/product/${line.slug}`;
               const variant = [line.colour, line.size].filter(Boolean).join(" · ");
               return (
                 <li key={line.id} className="py-6">
@@ -102,8 +105,21 @@ export function BagDrawer() {
                         </button>
                       </div>
                       {variant && <p className="mt-0.5 text-sm text-faint">{variant}</p>}
+                      {line.parts && (
+                        <ul className="mt-2 space-y-1 text-sm text-mist">
+                          {line.parts.map((part, i) => (
+                            <li key={i}>
+                              {describePart(part, productBySlug)}
+                              {part.photo && <span className="text-faint"> · your photo</span>}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
 
                       <div className="mt-3 flex items-center justify-between gap-3">
+                        {line.parts ? (
+                          <span className="text-sm text-faint">1 hamper</span>
+                        ) : (
                         <div
                           className="flex h-10 items-center rounded-full border border-hair-2"
                           role="group"
@@ -129,6 +145,7 @@ export function BagDrawer() {
                             +
                           </button>
                         </div>
+                        )}
                         <p className="text-gold-light tabular-nums">{formatPrice(line.total)}</p>
                       </div>
                     </div>

@@ -4,6 +4,8 @@
  * BagProvider. If storage is blocked the bag still works for the current visit.
  */
 
+import type { HamperPart } from "@/lib/hamper";
+
 export type StoredLine = {
   id: string;
   slug: string;
@@ -14,6 +16,8 @@ export type StoredLine = {
   note: string; // handwritten card message; empty means no card
   /** For items the customer sends a photo for: where it is stored, a small preview, and its direction. */
   photo?: { path: string; thumb: string; orient: "portrait" | "landscape" };
+  /** For a build-your-own hamper: the products chosen. The line is always one hamper. */
+  parts?: HamperPart[];
 };
 
 const KEY = "kalo-bag-v1";

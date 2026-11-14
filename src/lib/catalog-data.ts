@@ -20,6 +20,7 @@ type Row = {
   weight_g: number;
   design_group: string;
   custom_photo: boolean;
+  build_your_own: boolean;
   photo_size: string;
   size_prices: Record<string, number> | null;
   design_label: string;
@@ -82,6 +83,7 @@ export async function getProducts(): Promise<Product[]> {
     weightG: row.weight_g,
     designGroup: row.design_group,
     customPhoto: row.custom_photo,
+    buildYourOwn: row.build_your_own,
     photoSize: (frameSizeIds.includes(row.photo_size) ? row.photo_size : "A4") as FrameSizeId,
     sizePrices: row.size_prices ?? {},
     designLabel: row.design_label,

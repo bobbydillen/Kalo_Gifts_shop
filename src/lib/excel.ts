@@ -119,7 +119,15 @@ export function customersWorkbook(report: CustomerReport) {
       text(statusText(o.status)),
       text(statusText(o.payment_status)),
       text(o.payment_method === "cod" ? "Cash on delivery" : "Prepaid"),
-      text((itemsOf.get(o.id) ?? []).map((i) => `${i.product_name} × ${i.qty}${[i.colour, i.size].filter(Boolean).length ? ` (${[i.colour, i.size].filter(Boolean).join(", ")})` : ""}`).join("; ")),
+      text(
+        (itemsOf.get(o.id) ?? [])
+          .map((i) => {
+            const own = `${i.product_name} × ${i.qty}${[i.colour, i.size].filter(Boolean).length ? ` (${[i.colour, i.size].filter(Boolean).join(", ")})` : ""}`;
+            const inside = (i.parts ?? []).map((p) => `${p.name} × ${p.qty}${[p.colour, p.size].filter(Boolean).length ? ` (${[p.colour, p.size].filter(Boolean).join(", ")})` : ""}`).join(", ");
+            return inside ? `${own} [${inside}]` : own;
+          })
+          .join("; "),
+      ),
       money(o.subtotal),
       money(o.delivery_fee),
       money(o.total),

@@ -30,6 +30,8 @@ export type OrderLineInput = {
   wrap: boolean;
   note: string;
   photo?: string; // where the customer's photo was uploaded, for items that need one
+  /** For a build-your-own hamper: the products inside it. */
+  parts?: { slug: string; colour?: string; size?: string; qty: number; photo?: string }[];
 };
 
 export type PlaceOrderInput = CheckoutDetails & { items: OrderLineInput[]; expectedTotal: number };
@@ -125,6 +127,12 @@ export function describeOrderError(message: string): { text: string; refresh?: b
       return { text: `Check the quantity of ${detail || "an item"}.` };
     case "OUT_OF_STOCK":
       return { text: `${detail || "An item"} has just sold out in that size or colour. Remove it or choose another.`, refresh: true };
+    case "HAMPER_TOO_SMALL":
+      return { text: "A build-your-own hamper needs at least three different gifts. Open your bag and add more to it." };
+    case "HAMPER_UNAVAILABLE":
+      return { text: "The hamper builder is not open just now. Please remove the hamper from your bag and try again later.", refresh: true };
+    case "HAMPER_BAD":
+      return { text: "Something is wrong with your hamper. Please remove it from your bag and build it again." };
     case "PHOTO_REQUIRED":
       return { text: `Your photo for ${detail || "an item"} was not saved. Remove it from your bag and add it again with your photo.` };
     case "CARD_TOO_LONG":
