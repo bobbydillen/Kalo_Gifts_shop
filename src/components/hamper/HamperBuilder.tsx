@@ -70,9 +70,9 @@ export function HamperBuilder() {
     });
   }
 
+  // every product opens its details first, so the customer can see the pictures and description before adding it
   function choose(product: Product) {
-    if (plain(product)) addDraft({ key: crypto.randomUUID(), slug: product.slug, qty: 1 });
-    else setConfiguring(product);
+    setConfiguring(product);
   }
 
   async function addHamper() {
@@ -154,7 +154,7 @@ export function HamperBuilder() {
                     <button
                       type="button"
                       onClick={() => choose(p)}
-                      aria-label={`Add ${p.name} to your hamper`}
+                      aria-label={`See ${p.name} and add it to your hamper`}
                       className={`group relative block w-full overflow-hidden rounded-2xl border bg-pine text-left transition-[border-color,transform] duration-500 ease-bounce hover:-translate-y-0.5 ${
                         count ? "border-gold" : "border-hair hover:border-gold"
                       }`}
@@ -180,7 +180,7 @@ export function HamperBuilder() {
                             {price.from && <span className="mr-1 text-xs text-faint">From</span>}
                             {formatPrice(price.price)}
                           </span>
-                          <span className="text-xs uppercase tracking-[0.14em] text-mist group-hover:text-cream">{plain(p) ? "Add +" : "Choose"}</span>
+                          <span className="text-xs uppercase tracking-[0.14em] text-mist group-hover:text-cream">{plain(p) ? "View + add" : "View + choose"}</span>
                         </span>
                       </span>
                     </button>
@@ -204,7 +204,7 @@ export function HamperBuilder() {
             </p>
 
             {drafts.length === 0 ? (
-              <p className="mt-5 text-mist">Nothing here yet. Tap a gift to add it.</p>
+              <p className="mt-5 text-mist">Nothing here yet. Tap a gift to see its details and add it.</p>
             ) : (
               <ul className="mt-5 divide-y divide-hair">
                 {drafts.map((d) => {

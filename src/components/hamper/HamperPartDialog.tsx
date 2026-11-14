@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useCatalog } from "@/components/catalog/CatalogProvider";
 import { PhotoDesigner, type PhotoHandle, type PhotoResult } from "@/components/product/PhotoDesigner";
-import { formatPrice, frameSizeIds, priceFor, type Product } from "@/lib/catalog";
+import { formatPrice, frameSizeIds, photosFor, priceFor, type Product } from "@/lib/catalog";
 import { MAX_PART_QTY } from "@/lib/hamper";
 
 /** One chosen product while the hamper is being built. A photo is kept here until the hamper is added to the bag. */
@@ -39,6 +39,9 @@ export function HamperPartDialog({
   const [photoReady, setPhotoReady] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [shot, setShot] = useState(0); // which picture is showing; goes back to the first when the colour changes
+  const photos = photosFor(product, colour);
+  const shown = photos[Math.min(shot, Math.max(photos.length - 1, 0))];
 
   useEffect(() => {
     const el = dialog.current;
@@ -74,7 +77,7 @@ export function HamperPartDialog({
       aria-label={`Add ${product.name} to your hamper`}
       onClose={onClose}
       onClick={(e) => e.target === dialog.current && onClose()}
-      className="m-auto max-h-[92dvh] w-[min(94vw,36rem)] max-w-none overflow-y-auto rounded-3xl border border-hair-2 bg-pine p-0 text-cream backdrop:bg-night/80 backdrop:backdrop-blur-sm"
+      className="m-auto max-h-[92dvh] w-[min(94vw,40rem)] max-w-none overflow-y-auto rounded-3xl border border-hair-2 bg-pine p-0 text-cream backdrop:bg-night/80 backdrop:backdrop-blur-sm"
     >
       <div className="p-5 sm:p-7">
         <div className="flex items-start justify-between gap-4">
@@ -93,7 +96,54 @@ export function HamperPartDialog({
           </button>
         </div>
 
-        <div className="mt-6 space-y-6">
+        {shown && (
+          <div className="mt-5">
+            {/* eslint-disable-next-line @next/next/no-img-element -- photo sizes are not known until real photos arrive */}
+            <img src={shown} alt={product.name} className="mx-auto max-h-[46dvh] w-auto max-w-full rounded-2xl object-contain" />
+            {photos.length > 1 && (
+              <ul className="mt-3 flex justify-center gap-2 overflow-x-auto" aria-label="More pictures">
+                {photos.map((src, i) => (
+                  <li key={src}>
+                    <button
+                      type="button"
+                      onClick={() => setShot(i)}
+                      aria-label={`Picture ${i + 1} of ${photos.length}`}
+                      aria-current={src === shown}
+                      className="block size-14 overflow-hidden rounded-lg border border-hair-2 aria-[current=true]:border-gold-light"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element -- small preview */}
+                      <img src={src} alt="" className="size-full object-cover" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        <div className="mt-5 space-y-3 text-sm text-mist">
+          {product.line && <p className="text-base text-cream">{product.line}</p>}
+          <p>{product.description}</p>
+          {product.message && (
+            <p className="rounded-xl border border-hair-2 px-4 py-3">
+              <span className="text-xs uppercase tracking-[0.14em] text-faint">The words on it</span>
+              <span className="mt-1 block font-serif text-lg italic text-cream">“{product.message.text}”</span>
+              {product.message.ref && <span className="block text-xs text-faint">{product.message.ref}</span>}
+            </p>
+          )}
+          {product.details.length > 0 && (
+            <ul className="list-disc space-y-1 pl-5 marker:text-gold-light">
+              {product.details.map((d) => (
+                <li key={d}>{d}</li>
+              ))}
+            </ul>
+          )}
+          <a href={`/product/${product.slug}`} target="_blank" rel="noopener" className="inline-block underline underline-offset-4 hover:text-cream">
+            Open the full product page in a new tab
+          </a>
+        </div>
+
+        <div className="mt-6 space-y-6 border-t border-hair pt-6">
           {product.colours.length > 0 && (
             <fieldset>
               <legend className="text-sm text-mist">
@@ -109,6 +159,7 @@ export function HamperPartDialog({
                     title={c.name}
                     onClick={() => {
                       setColour(c.name);
+                      setShot(0);
                       if (size && stockFor(product, c.name, size) <= 0) setSize(undefined);
                       setQty(1);
                     }}
