@@ -4,6 +4,7 @@ import { CustomerNotes } from "@/components/admin/CustomerNotes";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { formatDate, formatDay, whatsappLink } from "@/lib/admin";
 import { formatPrice } from "@/lib/catalog";
+import { paymentLabel } from "@/lib/checkout";
 import { isCounted } from "@/lib/reports";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -129,7 +130,7 @@ export default async function CustomerPage({ params }: PageProps<"/admin/custome
                 <StatusBadge status={o.status} />
               </div>
               <p className="mt-1 text-sm text-faint">
-                {formatDate(o.created_at)} · {o.payment_method === "cod" ? "Cash on delivery" : "Prepaid"} · Payment: {o.payment_status}
+                {formatDate(o.created_at)} · {paymentLabel(o.payment_method)} · Payment: {o.payment_status}
               </p>
               <ul className="mt-4 space-y-2 text-mist">
                 {o.order_items.map((i, n) => (

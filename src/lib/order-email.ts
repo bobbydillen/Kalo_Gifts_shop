@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import { getProducts } from "@/lib/catalog-data";
 import { formatPrice } from "@/lib/catalog";
-import type { CheckoutDetails, OrderLineInput } from "@/lib/checkout";
+import { paymentLabel, type CheckoutDetails, type OrderLineInput, type PaymentChoice } from "@/lib/checkout";
 
 const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -15,7 +15,12 @@ const esc = (s: string) =>
  * A missing variable skips that email. Any failure is only logged: the order is already saved
  * in the database and visible in the admin, so it is never affected.
  */
-export async function sendOrderEmails(order: { number: number; total: number }, details: CheckoutDetails, items: OrderLineInput[]) {
+export async function sendOrderEmails(order: { number: number; total: number }, details: CheckoutDetails, items: OrderLineInput[], payment: PaymentChoice) {
+  const payText = payment === "cod" ? `Cash on delivery: collect ${formatPrice(order.total)} on delivery` : "Test order: nothing to collect";
+  const customerPay =
+    payment === "cod"
+      ? `You chose cash on delivery, so please keep ${formatPrice(order.total)} ready for the courier.`
+      : "This was a test order, so nothing is charged.";
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_APP_PASSWORD;
   if (!user || !pass) return;
@@ -62,6 +67,7 @@ export async function sendOrderEmails(order: { number: number; total: number }, 
           "",
           `Deliver to: ${details.name}`,
           address,
+          `Payment: ${payText}`,
           `Phone: ${details.phone}`,
           `Email: ${details.email}`,
           ...(details.note ? [`Delivery note: ${details.note}`] : []),
@@ -72,6 +78,7 @@ export async function sendOrderEmails(order: { number: number; total: number }, 
 <h2 style="margin:0 0 4px">New order #${order.number}</h2>
 <p style="margin:0 0 16px;font-size:20px"><strong>${esc(total)}</strong></p>
 ${list}
+<p><strong>Payment:</strong> ${esc(payText)}</p>
 <p><strong>${esc(details.name)}</strong><br>${esc(address)}<br>${esc(details.phone)}<br>${esc(details.email)}</p>
 ${details.note ? `<p>Delivery note: ${esc(details.note)}</p>` : ""}
 <p style="color:#666">Open the admin Orders page to confirm it and update its status.</p></div>`,
@@ -95,7 +102,8 @@ ${details.note ? `<p>Delivery note: ${esc(details.note)}</p>` : ""}
         "",
         `Delivering to: ${address}`,
         "",
-        "We will message you on WhatsApp to confirm your order and share how to pay.",
+        customerPay,
+        "We will message you on WhatsApp to confirm your order.",
         "You can see this order any time by signing in on the Account page of our website with this email address.",
         "",
         "With love,",
@@ -106,7 +114,8 @@ ${details.note ? `<p>Delivery note: ${esc(details.note)}</p>` : ""}
 <p style="margin:0 0 16px">Your order <strong>#${order.number}</strong> is received. Total <strong>${esc(total)}</strong>.</p>
 ${list}
 <p><strong>Delivering to</strong><br>${esc(details.name)}<br>${esc(address)}</p>
-<p>We will message you on WhatsApp to confirm your order and share how to pay.</p>
+<p>${esc(customerPay)}</p>
+<p>We will message you on WhatsApp to confirm your order.</p>
 <p style="color:#666">You can see this order any time by signing in on the Account page of our website with this email address.</p>
 <p style="margin-top:24px">With love,<br>KALO Gifts</p></div>`,
     });

@@ -28,7 +28,7 @@ async function Confirmation({ searchParams }: Pick<PageProps<"/order-placed">, "
       </h1>
       {number && <p className="mt-6 font-serif text-3xl text-gold-light">#{number}</p>}
       <p className="mx-auto mt-8 max-w-md text-lg text-mist">
-        We will message you on WhatsApp to confirm your order and share how to pay. Keep the order number
+        We will message you on WhatsApp to confirm your order. Keep the order number
         handy in case you need to ask about it.
       </p>
       <div className="mt-10">

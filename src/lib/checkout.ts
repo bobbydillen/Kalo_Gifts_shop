@@ -34,7 +34,30 @@ export type OrderLineInput = {
   parts?: { slug: string; colour?: string; size?: string; qty: number; photo?: string }[];
 };
 
-export type PlaceOrderInput = CheckoutDetails & { items: OrderLineInput[]; expectedTotal: number };
+/** "test" is a test order (no real payment); until the payment gateway is added it is the other way to order. */
+export type PaymentChoice = "test" | "cod";
+
+export type PlaceOrderInput = CheckoutDetails & { items: OrderLineInput[]; expectedTotal: number; payment: PaymentChoice };
+
+/** How an order's payment method is shown in the admin, emails and reports. */
+export const paymentLabel = (m: string | null | undefined) => (m === "cod" ? "Cash on delivery" : m === "test" ? "Test order" : "Prepaid");
+
+/** Cash on delivery is only for plain orders up to this amount (the database checks it again). */
+export const COD_MAX = 1500;
+
+/**
+ * Why cash on delivery is not offered for this bag, or null if it is. Gift wrap, a handwritten card and
+ * anything made from the customer's own photo are not sent cash on delivery, and neither is a large order.
+ */
+export function codBlocker(
+  lines: { wrap: boolean; note: string; photo?: unknown; parts?: { photo?: unknown }[] }[],
+  total: number,
+): string | null {
+  const gift = lines.some((l) => l.wrap || l.note.trim() !== "" || l.photo || l.parts?.some((p) => p.photo));
+  if (gift) return "Not available with gift wrap, a handwritten card or a custom photo.";
+  if (total > COD_MAX) return `Not available for orders above ₹${COD_MAX.toLocaleString("en-IN")}.`;
+  return null;
+}
 
 const text = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
@@ -139,6 +162,10 @@ export function describeOrderError(message: string): { text: string; refresh?: b
       return { text: "A card message is too long. Shorten it in your bag." };
     case "PRICE_CHANGED":
       return { text: "Some prices have just changed. Reload the page to see the new total, then place your order again.", refresh: true };
+    case "BAD_PAYMENT":
+      return { text: "Choose how you would like to order." };
+    case "COD_NOT_AVAILABLE":
+      return { text: "Cash on delivery is not available for this order. Choose the other option." };
     case "BUSY":
     case "TOO_MANY":
       return { text: "We are getting a lot of orders right now. Please try again in a little while." };

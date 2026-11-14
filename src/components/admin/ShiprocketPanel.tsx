@@ -39,7 +39,7 @@ export function ShiprocketPanel(props: Props) {
             </div>
             <div className="flex justify-between gap-4">
               <dt>Payment</dt>
-              <dd className="text-cream">{props.paymentMethod === "cod" ? "Cash on delivery" : "Prepaid"}</dd>
+              <dd className="text-cream">{props.paymentMethod === "cod" ? "Cash on delivery" : props.paymentMethod === "test" ? "Test order" : "Prepaid"}</dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt>Courier</dt>

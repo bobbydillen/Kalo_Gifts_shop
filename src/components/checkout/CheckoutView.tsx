@@ -9,7 +9,7 @@ import { useCatalog } from "@/components/catalog/CatalogProvider";
 import { ProductArt } from "@/components/product/ProductArt";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { formatPrice } from "@/lib/catalog";
-import { INDIAN_STATES, validateDetails } from "@/lib/checkout";
+import { INDIAN_STATES, codBlocker, validateDetails, type PaymentChoice } from "@/lib/checkout";
 import type { PincodeResult } from "@/lib/pincode";
 import { describePart } from "@/lib/hamper";
 import { shippingFee } from "@/lib/shipping";
@@ -39,6 +39,7 @@ export function CheckoutView() {
   const [pincode, setPincode] = useState("");
   const [note, setNote] = useState("");
   const [area, setArea] = useState(""); // the local area chosen from the pincode's own list
+  const [payment, setPayment] = useState<PaymentChoice>("test");
 
   // The pincode decides the city, state and local areas, so they cannot be made up.
   type Lookup = { status: "idle" } | { status: "loading" } | PincodeResult;
@@ -117,6 +118,10 @@ export function CheckoutView() {
   const total = subtotal + (delivery ?? 0);
   const unavailable = lines.some((l) => l.left <= 0);
 
+  // Cash on delivery only for plain orders; if the bag changes so it no longer qualifies, fall back to the test order
+  const codReason = codBlocker(lines, total);
+  const method: PaymentChoice = payment === "cod" && !codReason ? "cod" : "test";
+
   if (!settings.checkoutOpen && !placed) {
     return (
       <Notice
@@ -176,6 +181,7 @@ export function CheckoutView() {
       const result = await placeOrder({
         ...details.value,
         expectedTotal: total,
+        payment: method,
         items: lines.map((l) => ({
           slug: l.slug,
           colour: l.colour,
@@ -358,6 +364,27 @@ export function CheckoutView() {
             </label>
           </div>
         </fieldset>
+
+        <fieldset>
+          <legend className="font-serif text-3xl">
+            How to <em>pay</em>
+          </legend>
+          <div className="mt-5 grid gap-3">
+            <PayOption
+              checked={method === "test"}
+              onSelect={() => setPayment("test")}
+              title="Test order"
+              text="Places the order without taking any payment. Online payment is coming very soon."
+            />
+            <PayOption
+              checked={method === "cod"}
+              disabled={Boolean(codReason)}
+              onSelect={() => setPayment("cod")}
+              title="Cash on delivery"
+              text={codReason ?? "Pay in cash when your order arrives."}
+            />
+          </div>
+        </fieldset>
       </div>
 
       <aside className="lg:sticky lg:top-28 lg:self-start">
@@ -435,7 +462,7 @@ export function CheckoutView() {
           )}
 
           <button type="submit" disabled={pending} className="btn btn-gold mt-6 w-full disabled:opacity-60">
-            {pending ? "Placing your order…" : `Place order · ${formatPrice(total)}`}
+            {pending ? "Placing your order…" : method === "cod" ? `Place order · pay ${formatPrice(total)} on delivery` : `Place test order · ${formatPrice(total)}`}
           </button>
           <p className="mt-3 text-xs text-faint">
             By placing your order you agree to our{" "}
@@ -445,7 +472,9 @@ export function CheckoutView() {
             <Link href="/policies/returns" className="underline underline-offset-4 hover:text-cream">returns</Link> policies.
           </p>
           <p className="mt-3 text-center text-xs text-faint">
-            We will message you on WhatsApp to confirm your order and share how to pay.
+            {method === "cod"
+              ? "We will message you on WhatsApp to confirm your order. You pay the courier in cash when it arrives."
+              : "A test order is not charged. We will message you on WhatsApp to confirm it."}
           </p>
           <Link href="/gifts" className="mt-4 block text-center text-sm text-mist underline underline-offset-4 hover:text-cream">
             Keep shopping
@@ -453,6 +482,22 @@ export function CheckoutView() {
         </div>
       </aside>
     </form>
+  );
+}
+
+function PayOption({ checked, disabled, onSelect, title, text }: { checked: boolean; disabled?: boolean; onSelect: () => void; title: string; text: string }) {
+  return (
+    <label
+      className={`flex items-start gap-4 rounded-2xl border px-5 py-4 ${
+        checked ? "border-gold bg-pine" : "border-hair-2 bg-pine/60"
+      } ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:border-gold/70"}`}
+    >
+      <input type="radio" name="payment" checked={checked} disabled={disabled} onChange={onSelect} className="mt-1.5 accent-[var(--color-gold)]" />
+      <span>
+        <span className="block font-serif text-xl">{title}</span>
+        <span className="block text-sm text-mist">{text}</span>
+      </span>
+    </label>
   );
 }
 

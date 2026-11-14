@@ -1,5 +1,6 @@
 import writeXlsxFile, { type Cell, type Sheet, type SheetData } from "write-excel-file/node";
 import { categoryLabels, type Category } from "@/lib/catalog";
+import { paymentLabel } from "@/lib/checkout";
 import {
   isCounted,
   toIst,
@@ -118,7 +119,7 @@ export function customersWorkbook(report: CustomerReport) {
       text(o.customer_email),
       text(statusText(o.status)),
       text(statusText(o.payment_status)),
-      text(o.payment_method === "cod" ? "Cash on delivery" : "Prepaid"),
+      text(paymentLabel(o.payment_method)),
       text(
         (itemsOf.get(o.id) ?? [])
           .map((i) => {

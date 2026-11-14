@@ -57,6 +57,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       ...details.value,
       phone,
       expected_total: Number.isInteger(input.expectedTotal) ? input.expectedTotal : null,
+      payment: input.payment === "cod" ? "cod" : input.payment === "test" ? "test" : "",
       items: items.map((i) => ({
         slug: String(i.slug ?? ""),
         colour: i.colour ? String(i.colour) : "",
@@ -88,6 +89,6 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
 
   const result = data as { number: number; total: number };
   // email the shop owner and the customer after the response, so the customer never waits for it
-  after(() => sendOrderEmails(result, { ...details.value, phone }, items));
+  after(() => sendOrderEmails(result, { ...details.value, phone }, items, input.payment === "cod" ? "cod" : "test"));
   return { ok: true, number: result.number, total: result.total };
 }

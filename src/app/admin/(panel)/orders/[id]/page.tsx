@@ -14,6 +14,7 @@ import {
   type OrderRow,
 } from "@/lib/admin";
 import { formatPrice } from "@/lib/catalog";
+import { paymentLabel } from "@/lib/checkout";
 import { supabaseServer } from "@/lib/supabase/server";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -73,7 +74,7 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
         <StatusBadge status={order.status} />
       </div>
       <p className="mt-2 text-sm text-faint">
-        Placed {formatDate(order.created_at)} · Payment: {order.payment_status}
+        Placed {formatDate(order.created_at)} · {paymentLabel(order.payment_method)} · Payment: {order.payment_status}
       </p>
 
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
