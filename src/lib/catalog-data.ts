@@ -71,7 +71,7 @@ export async function getProducts(): Promise<Product[]> {
     stock: Object.fromEntries(
       row.stock.map((s) => [variantKey(s.colour || undefined, s.size || undefined), s.qty]),
     ),
-    images: [...row.product_images].sort((a, b) => a.position - b.position).map((i) => photos + i.path),
+    images: [...row.product_images].sort((a, b) => a.position - b.position).map((i) => (i.path.startsWith("/") ? i.path : photos + i.path)),
     // a photo tagged with a colour the product no longer has counts as shared
     imageColours: [...row.product_images]
       .sort((a, b) => a.position - b.position)

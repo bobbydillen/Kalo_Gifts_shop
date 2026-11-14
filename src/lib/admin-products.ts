@@ -42,8 +42,9 @@ export const slugify = (text: string) =>
     .replace(/^-+|-+$/g, "")
     .slice(0, 80);
 
+// pictures that ship with the site start with "/"; uploaded ones live in storage
 export const photoUrl = (path: string) =>
-  `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/product-images/${path}`;
+  path.startsWith("/") ? path : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/product-images/${path}`;
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
