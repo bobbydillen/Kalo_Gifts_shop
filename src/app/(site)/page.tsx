@@ -7,7 +7,16 @@ import { OrderByPill } from "@/components/home/OrderByPill";
 import { ClosingCta, Faq, Gifting, Story } from "@/components/home/Sections";
 import { WordTicker } from "@/components/home/WordTicker";
 import { getProducts } from "@/lib/catalog-data";
+import type { Metadata } from "next";
+import { STATIC_PAGES } from "@/lib/seo";
+import { seoFor } from "@/lib/seo-data";
 import { getSettings } from "@/lib/settings-data";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = STATIC_PAGES.find((p) => p.key === "home")!;
+  const seo = await seoFor(page.key, page.defaults);
+  return { title: { absolute: seo.title }, description: seo.description, alternates: { canonical: "/" } };
+}
 
 /**
  * Home page. The logo hero is always first. While the Christmas switch is on,

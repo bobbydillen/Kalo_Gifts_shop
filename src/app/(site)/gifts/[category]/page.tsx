@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import { CataloguePage } from "@/components/product/CataloguePage";
 import { categories, categoryBySlug, createCatalog } from "@/lib/catalog";
 import { getProducts } from "@/lib/catalog-data";
+import { categoryKey } from "@/lib/seo";
+import { seoFor } from "@/lib/seo-data";
 
 export function generateStaticParams() {
   return categories.map((c) => ({ category: c.slug }));
@@ -11,9 +13,9 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/gifts/[category]">): Promise<Metadata> {
   const category = categoryBySlug((await params).category);
-  return category
-    ? { title: category.seoTitle, description: category.seoDescription, alternates: { canonical: `/gifts/${category.slug}` } }
-    : {};
+  if (!category) return {};
+  const seo = await seoFor(categoryKey(category.slug), { title: category.seoTitle, description: category.seoDescription });
+  return { title: seo.title, description: seo.description, alternates: { canonical: `/gifts/${category.slug}` } };
 }
 
 /** The address is read inside Suspense so moving between pages stays instant. */

@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { CataloguePage } from "@/components/product/CataloguePage";
 import { getProducts } from "@/lib/catalog-data";
+import { STATIC_PAGES } from "@/lib/seo";
+import { seoFor } from "@/lib/seo-data";
 
-export const metadata: Metadata = {
-  title: "Christian gifts: Bible verse tees, bottles, hampers and more",
-  description:
-    "Shop Christian gifts online in India: Bible verse T-shirts and hoodies, printed water bottles, keychains, personalised photo frames and gift hampers for Christmas and every occasion.",
-  alternates: { canonical: "/gifts" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const page = STATIC_PAGES.find((p) => p.key === "gifts")!;
+  const seo = await seoFor(page.key, page.defaults);
+  return { title: seo.title, description: seo.description, alternates: { canonical: page.path } };
+}
 
 export default async function GiftsPage() {
   return (

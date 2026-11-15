@@ -11,7 +11,8 @@ import {
 } from "react";
 import { getServerSnapshot, getSnapshot, setLines, subscribe, type StoredLine } from "@/lib/bag-store";
 import { useCatalog } from "@/components/catalog/CatalogProvider";
-import type { Catalog, Product } from "@/lib/catalog";
+import { categoryLabels, priceFor, type Catalog, type Product } from "@/lib/catalog";
+import { contentFor, track } from "@/lib/meta-pixel";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { canGiftWrap, unitPrice } from "@/lib/gifting";
 import { hamperInStock, hamperPrice, type HamperPart } from "@/lib/hamper";
@@ -71,6 +72,8 @@ const makeId = () => Math.random().toString(36).slice(2) + Date.now().toString(3
 const limitFor = (catalog: Catalog, product: Product, colour?: string, size?: string) =>
   Math.min(MAX_QTY, catalog.stockFor(product, colour, size));
 
+const trackItem = (p: Product) => ({ slug: p.slug, name: p.name, category: categoryLabels[p.category] });
+
 export function BagProvider({ children }: { children: ReactNode }) {
   const catalog = useCatalog();
   const settings = useSettings();
@@ -109,12 +112,14 @@ export function BagProvider({ children }: { children: ReactNode }) {
       // each build-your-own hamper is its own line: never merged with another
       const note = (input.note ?? "").trim().slice(0, maxChars);
       setLines([...getSnapshot(), { id: makeId(), slug: input.slug, qty: 1, wrap: false, note, parts: input.parts }]);
+      track("AddToCart", contentFor(trackItem(product), product.price));
       setOpen(true);
       return;
     }
 
     const limit = limitFor(catalog, product, input.colour, input.size);
     if (limit <= 0) return;
+    track("AddToCart", contentFor(trackItem(product), priceFor(product, input.size) * Math.max(1, input.qty ?? 1), Math.max(1, input.qty ?? 1)));
 
     const wrap = Boolean(input.wrap) && canGiftWrap(product);
     const note = (input.note ?? "").trim().slice(0, maxChars);

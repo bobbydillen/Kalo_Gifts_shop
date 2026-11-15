@@ -8,6 +8,7 @@ const base = [
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/customers", label: "Customers" },
   { href: "/admin/products", label: "Products" },
+  { href: "/admin/seo", label: "Search (SEO)" },
   { href: "/admin/settings", label: "Settings" },
 ];
 

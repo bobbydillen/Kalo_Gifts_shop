@@ -32,6 +32,7 @@ export type SiteSettings = {
   gstin: string; // optional
   grievanceOfficer: string; // name of the person who handles complaints
   customerLogin: boolean; // sign-in by text message and the Account page
+  metaPixelId: string; // Meta (Facebook and Instagram) Pixel ID, digits only; empty means no tracking
 };
 
 export const DEFAULT_SETTINGS: SiteSettings = {
@@ -56,6 +57,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   gstin: "",
   grievanceOfficer: "",
   customerLogin: false, // off until the SMS provider is set up and tested
+  metaPixelId: "",
 };
 
 /** Database key for each setting. */
@@ -81,6 +83,7 @@ export const SETTING_KEYS: Record<keyof SiteSettings, string> = {
   gstin: "gstin",
   grievanceOfficer: "grievance_officer",
   customerLogin: "customer_login",
+  metaPixelId: "meta_pixel_id",
 };
 
 const isDate = (v: unknown): v is string => typeof v === "string" && !Number.isNaN(Date.parse(v));
@@ -138,6 +141,9 @@ export function validateSettings(
   if (!text(raw.businessName, 120) || !text(raw.businessAddress, 400) || !text(raw.gstin, 20) || !text(raw.grievanceOfficer, 120)) {
     return fail("One of the business details is too long.");
   }
+  if (typeof raw.metaPixelId !== "string" || (raw.metaPixelId.trim() && !/^\d{10,20}$/.test(raw.metaPixelId.trim()))) {
+    return fail("The Meta Pixel ID is a number of 15 or 16 digits. Copy it from Meta Events Manager, or leave it empty.");
+  }
   const whole = (v: unknown, min: number, max: number) => Number.isInteger(v) && (v as number) >= min && (v as number) <= max;
   if (!whole(raw.giftWrapPrice, 0, 5000)) return fail("Gift wrap price must be a whole number of rupees, 0 to 5000.");
   if (!whole(raw.giftCardPrice, 0, 5000)) return fail("Handwritten card price must be a whole number of rupees, 0 to 5000.");
@@ -159,6 +165,7 @@ export function validateSettings(
       businessAddress: raw.businessAddress.trim(),
       gstin: raw.gstin.trim().toUpperCase(),
       grievanceOfficer: raw.grievanceOfficer.trim(),
+      metaPixelId: raw.metaPixelId.trim(),
     },
   };
 }

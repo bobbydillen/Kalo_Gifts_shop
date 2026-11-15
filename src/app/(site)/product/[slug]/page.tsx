@@ -12,7 +12,10 @@ import { Reveal } from "@/components/ui/Reveal";
 import { Rise } from "@/components/ui/Rise";
 import { categoryOf, createCatalog, formatPrice, fromPrice } from "@/lib/catalog";
 import { getProducts } from "@/lib/catalog-data";
+import { ViewContent } from "@/components/analytics/PixelEvents";
 import { JsonLd } from "@/components/site/JsonLd";
+import { productKey } from "@/lib/seo";
+import { seoFor } from "@/lib/seo-data";
 import { site } from "@/lib/site";
 
 export async function generateStaticParams() {
@@ -25,18 +28,19 @@ export async function generateMetadata({ params }: PageProps<"/product/[slug]">)
   const product = createCatalog(await getProducts()).productBySlug((await params).slug);
   if (!product) return {};
   const image = product.images[0];
+  const seo = await seoFor(productKey(product.slug), { title: product.name, description: product.description });
   return {
-    title: product.name,
-    description: product.description,
+    title: seo.title,
+    description: seo.description,
     alternates: { canonical: `/product/${product.slug}` },
     openGraph: {
       type: "website",
-      title: `${product.name} · ${site.name}`,
-      description: product.description,
+      title: `${seo.title} · ${site.name}`,
+      description: seo.description,
       url: `/product/${product.slug}`,
       ...(image ? { images: [{ url: image, alt: product.name }] } : {}),
     },
-    twitter: { card: image ? "summary_large_image" : "summary", title: product.name, description: product.description, ...(image ? { images: [image] } : {}) },
+    twitter: { card: image ? "summary_large_image" : "summary", title: seo.title, description: seo.description, ...(image ? { images: [image] } : {}) },
   };
 }
 
@@ -78,12 +82,13 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
           offers: {
             "@type": "Offer",
             priceCurrency: "INR",
-            price: fromPrice(product),
+            price: fromPrice(product).price,
             availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
             url: `${site.url}/product/${product.slug}`,
           },
         }}
       />
+      <ViewContent slug={product.slug} name={product.name} category={category.label} price={fromPrice(product).price} />
       <div className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 lg:pb-28 lg:pt-12">
         <nav aria-label="Breadcrumb" className="text-sm text-faint">
           <ol className="flex flex-wrap items-center gap-2">

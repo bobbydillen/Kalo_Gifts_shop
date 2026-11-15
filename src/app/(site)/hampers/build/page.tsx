@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { HamperBuilder } from "@/components/hamper/HamperBuilder";
+import { STATIC_PAGES } from "@/lib/seo";
+import { seoFor } from "@/lib/seo-data";
 
-export const metadata: Metadata = {
-  title: "Build your own gift hamper: customised Christmas hampers",
-  description:
-    "Build a customised gift hamper: choose three or more gifts, pick their colours and sizes, add a handwritten card, and we pack it with care. Perfect for Christmas. Delivered across India.",
-  alternates: { canonical: "/hampers/build" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const page = STATIC_PAGES.find((p) => p.key === "hamper-builder")!;
+  const seo = await seoFor(page.key, page.defaults);
+  return { title: seo.title, description: seo.description, alternates: { canonical: page.path } };
+}
 
 export default function BuildHamperPage() {
   return <HamperBuilder />;

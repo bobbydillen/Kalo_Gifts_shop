@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type ReactNode } from "react";
-import { deleteProduct, saveProduct } from "@/app/admin/products/actions";
+import { deleteProduct, saveProduct, saveProductSeo } from "@/app/admin/products/actions";
 import { ProductPhotos } from "@/components/admin/ProductPhotos";
 import { slugify, validateProduct, type AdminImage, type ProductInput } from "@/lib/admin-products";
 import { categories, FRAME_SIZES, STANDARD_SIZES, type Category } from "@/lib/catalog";
@@ -25,10 +25,13 @@ type ColourRow = { key: number; name: string; hex: string };
 /** Editor for one product. Used for both "new" and "edit". */
 export function ProductForm({
   initial,
+  initialSeo,
   others,
   images,
 }: {
   initial?: ProductInput & { id: string };
+  /** The saved Google title and description of this product, if any. */
+  initialSeo?: { title: string; description: string };
   others: { slug: string; name: string; design_group?: string }[]; // non-hamper products, for the hamper picker
   images: AdminImage[];
 }) {
@@ -38,6 +41,8 @@ export function ProductForm({
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
 
   const [name, setName] = useState(initial?.name ?? "");
+  const [seoTitle, setSeoTitle] = useState(initialSeo?.title ?? "");
+  const [seoDescription, setSeoDescription] = useState(initialSeo?.description ?? "");
   const [slug, setSlug] = useState(initial?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(false);
   const [category, setCategory] = useState<Category>(initial?.category ?? "tshirt");
@@ -144,6 +149,12 @@ export function ProductForm({
       const res = await saveProduct(checked.value);
       if (!res.ok) {
         setResult({ ok: false, text: res.error });
+        return;
+      }
+      const seo = await saveProductSeo(res.id, seoTitle, seoDescription);
+      if (!seo.ok) {
+        setResult({ ok: false, text: `The product saved, but its Google text did not: ${seo.error}` });
+        if (creating) router.push(`/admin/products/${res.id}?created=1`);
         return;
       }
       if (creating) {
@@ -528,6 +539,30 @@ export function ProductForm({
           </div>
         </Section>
       )}
+
+      <Section
+        title={<>Search on <em>Google</em></>}
+        hint="How this product appears in Google results. Leave both empty to use the product name and description."
+      >
+        <div className="rounded-xl bg-night/70 p-4">
+          <p className="text-xs text-faint">How it can look on Google</p>
+          <p className="mt-1 truncate text-lg text-[#8ab4f8]">{(seoTitle.trim() || name || "Product name") + " · KALO Gifts"}</p>
+          <p className="text-xs text-[#9aa0a6]">https://kalogifts.com/product/{creating ? slug || "…" : initial!.slug}</p>
+          <p className="mt-1 line-clamp-2 text-sm text-mist">{seoDescription.trim() || description || "The product description."}</p>
+        </div>
+        <label className="block text-sm text-mist">
+          <span className="flex justify-between">
+            Title <span className={(seoTitle.trim() || name).length > 60 ? "text-berry-light" : "text-faint"}>{(seoTitle.trim() || name).length}/60</span>
+          </span>
+          <input value={seoTitle} maxLength={120} onChange={(e) => setSeoTitle(e.target.value)} placeholder={name || "Product name"} className={field} />
+        </label>
+        <label className="block text-sm text-mist">
+          <span className="flex justify-between">
+            Description <span className={(seoDescription.trim() || description).length > 160 ? "text-berry-light" : "text-faint"}>{(seoDescription.trim() || description).length}/160</span>
+          </span>
+          <textarea rows={3} value={seoDescription} maxLength={320} onChange={(e) => setSeoDescription(e.target.value)} placeholder={description} className={field} />
+        </label>
+      </Section>
 
       <Section title={<>Pho<em>tos</em></>}>
         {initial ? (

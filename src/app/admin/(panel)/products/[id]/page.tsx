@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ProductForm } from "@/components/admin/ProductForm";
 import type { AdminImage, ProductInput } from "@/lib/admin-products";
 import type { Category } from "@/lib/catalog";
+import { productKey } from "@/lib/seo";
 import { supabaseServer } from "@/lib/supabase/server";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -15,13 +16,14 @@ export default async function EditProductPage({ params, searchParams }: PageProp
   if (!UUID.test(id)) notFound();
 
   const supabase = await supabaseServer();
-  const [{ data: product }, { data: others }] = await Promise.all([
+  const [{ data: product }, { data: others }, { data: seoRows }] = await Promise.all([
     supabase
       .from("products")
       .select("*, product_colours(name, hex, position), stock(colour, size, qty), product_images(id, path, position, colour)")
       .eq("id", id)
       .maybeSingle(),
     supabase.from("products").select("slug, name, design_group").neq("category", "hamper").neq("id", id).order("name"),
+    supabase.from("seo_pages").select("key, title, description"),
   ]);
   if (!product) notFound();
 
@@ -58,6 +60,7 @@ export default async function EditProductPage({ params, searchParams }: PageProp
     stock: product.stock,
   };
   const images: AdminImage[] = product.product_images;
+  const seo = (seoRows ?? []).find((r) => r.key === productKey(product.slug));
 
   return (
     <div className="max-w-3xl">
@@ -77,7 +80,7 @@ export default async function EditProductPage({ params, searchParams }: PageProp
           Product created. You can add photos below.
         </p>
       )}
-      <ProductForm key={product.id} initial={initial} others={others ?? []} images={images} />
+      <ProductForm key={product.id} initial={initial} initialSeo={seo ? { title: seo.title, description: seo.description } : undefined} others={others ?? []} images={images} />
     </div>
   );
 }

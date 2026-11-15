@@ -1,5 +1,7 @@
 "use client";
 
+import { InitiateCheckout } from "@/components/analytics/PixelEvents";
+import { PURCHASE_KEY, type PurchaseNote } from "@/lib/meta-pixel";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition, type FormEvent } from "react";
@@ -198,6 +200,17 @@ export function CheckoutView() {
         if (result.refresh) router.refresh();
         return;
       }
+      try {
+        const note: PurchaseNote = {
+          number: result.number,
+          value: total,
+          ids: [...new Set(lines.map((l) => l.slug))],
+          count: lines.reduce((n, l) => n + l.qty, 0),
+        };
+        sessionStorage.setItem(PURCHASE_KEY, JSON.stringify(note));
+      } catch {
+        // storage blocked: the order still goes through, only the ad report is skipped
+      }
       setPlaced(true);
       clear();
       router.push(`/order-placed?n=${result.number}`);
@@ -206,6 +219,7 @@ export function CheckoutView() {
 
   return (
     <form onSubmit={submit} className="grid gap-10 lg:grid-cols-[1.15fr_1fr] lg:gap-14">
+      <InitiateCheckout ids={[...new Set(lines.map((l) => l.slug))]} value={total} count={lines.reduce((n, l) => n + l.qty, 0)} />
       <div className="space-y-8">
         <fieldset>
           <legend className="font-serif text-3xl">

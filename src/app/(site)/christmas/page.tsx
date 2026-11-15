@@ -10,14 +10,15 @@ import { Button } from "@/components/ui/Button";
 import { Rise } from "@/components/ui/Rise";
 import { createCatalog } from "@/lib/catalog";
 import { getProducts } from "@/lib/catalog-data";
+import { STATIC_PAGES } from "@/lib/seo";
+import { seoFor } from "@/lib/seo-data";
 import { getSettings } from "@/lib/settings-data";
 
-export const metadata: Metadata = {
-  title: "Christian Christmas gifts and hampers",
-  description:
-    "Christian Christmas gifts and Christmas hampers: Bible verse tees, bottles and keepsakes, gift wrapped with a handwritten card. Build your own Christmas hamper. Delivered across India.",
-  alternates: { canonical: "/christmas" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const page = STATIC_PAGES.find((p) => p.key === "christmas")!;
+  const seo = await seoFor(page.key, page.defaults);
+  return { title: seo.title, description: seo.description, alternates: { canonical: page.path } };
+}
 
 
 /**

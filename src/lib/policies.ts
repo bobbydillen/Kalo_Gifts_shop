@@ -196,7 +196,7 @@ export function getPolicy(slug: string, s: SiteSettings): Policy | undefined {
           {
             title: "Who it is shared with",
             body: [
-              "Only the people who help us serve you: courier and shipping partners (they need your name, address and phone to deliver), our payment provider when payments are added (they handle your payment details; we never see your card or UPI PIN), and the technology services that run this website and store its data. They may only use your information for these purposes. We may also share information when the law requires it.",
+              "Only the people who help us serve you: courier and shipping partners (they need your name, address and phone to deliver), our payment provider when payments are added (they handle your payment details; we never see your card or UPI PIN), the technology services that run this website and store its data, and advertising services such as Meta (Facebook and Instagram), which receive information about the pages and products you view and your orders (not your name, address or phone number) so that our ads can reach the right people. They may only use your information for these purposes. We may also share information when the law requires it.",
             ],
           },
           {

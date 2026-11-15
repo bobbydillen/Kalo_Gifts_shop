@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { MetaPixel } from "@/components/analytics/MetaPixel";
 import { JsonLd } from "@/components/site/JsonLd";
 import { site } from "@/lib/site";
 import { BagDrawer } from "@/components/bag/BagDrawer";
@@ -31,6 +33,9 @@ export default async function SiteLayout({ children }: LayoutProps<"/">) {
       <SettingsProvider settings={settings}>
         <CatalogProvider products={products}>
           <BagProvider>
+            <Suspense fallback={null}>
+              <MetaPixel />
+            </Suspense>
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />

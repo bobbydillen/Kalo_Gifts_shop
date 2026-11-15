@@ -2,6 +2,7 @@
 
 import { revalidatePath, updateTag } from "next/cache";
 import { validateProduct, type ProductInput } from "@/lib/admin-products";
+import { productKey } from "@/lib/seo";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export type SaveResult = { ok: true; id: string } | { ok: false; error: string };
@@ -46,16 +47,48 @@ export async function saveProduct(input: ProductInput): Promise<SaveResult> {
   return { ok: true, id: data as string };
 }
 
+/**
+ * Saves the product's Google title and description (see lib/seo.ts). Both empty means "use the
+ * product's own name and description", so the saved row is removed.
+ */
+export async function saveProductSeo(productId: string, title: string, description: string): Promise<PlainResult> {
+  if (!UUID.test(productId)) return { ok: false, error: "That product could not be found." };
+  const t = String(title ?? "").trim();
+  const d = String(description ?? "").trim();
+  if (t.length > 120) return { ok: false, error: "The title is too long (120 characters at most)." };
+  if (d.length > 320) return { ok: false, error: "The description is too long (320 characters at most)." };
+
+  const supabase = await supabaseServer();
+  const { data: product } = await supabase.from("products").select("slug").eq("id", productId).maybeSingle();
+  if (!product) return { ok: false, error: "That product could not be found." };
+  const key = productKey(product.slug);
+
+  if (!t && !d) {
+    const { error } = await supabase.from("seo_pages").delete().eq("key", key);
+    if (error) return { ok: false, error: "The Google text could not be reset." };
+  } else {
+    const { data, error } = await supabase
+      .from("seo_pages")
+      .upsert({ key, title: t, description: d, updated_at: new Date().toISOString() }, { onConflict: "key" })
+      .select("key");
+    if (error || !data?.length) return { ok: false, error: "The Google text could not be saved." };
+  }
+  updateTag("seo");
+  return { ok: true };
+}
+
 /** Deletes a product, its photos and its stock. Orders that already include it keep their own copy of the details. */
 export async function deleteProduct(id: string): Promise<PlainResult> {
   if (!UUID.test(id)) return { ok: false, error: "That product could not be found." };
   const supabase = await supabaseServer();
 
+  const { data: slugRow } = await supabase.from("products").select("slug").eq("id", id).maybeSingle();
   const { data: photos } = await supabase.from("product_images").select("path").eq("product_id", id);
   if (photos?.length) await supabase.storage.from("product-images").remove(photos.map((p) => p.path));
 
   const { data, error } = await supabase.from("products").delete().eq("id", id).select("id");
   if (error || !data?.length) return { ok: false, error: "The product could not be deleted." };
+  if (slugRow) await supabase.from("seo_pages").delete().eq("key", productKey(slugRow.slug));
 
   refreshShop();
   return { ok: true };

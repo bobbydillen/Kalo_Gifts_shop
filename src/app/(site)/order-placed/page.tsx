@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { PurchaseEvent } from "@/components/analytics/PixelEvents";
 import { Button } from "@/components/ui/Button";
 
 export const metadata: Metadata = {
@@ -22,6 +23,7 @@ async function Confirmation({ searchParams }: Pick<PageProps<"/order-placed">, "
 
   return (
     <section className="mx-auto max-w-2xl px-4 py-24 text-center sm:px-6 lg:py-36">
+      <PurchaseEvent />
       <p className="kicker">Thank you</p>
       <h1 className="mt-6 text-[clamp(2.75rem,7vw,5.5rem)]">
         Order <em>received</em>

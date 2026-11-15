@@ -77,6 +77,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
   const [businessAddress, setBusinessAddress] = useState(initial.businessAddress);
   const [gstin, setGstin] = useState(initial.gstin);
   const [grievance, setGrievance] = useState(initial.grievanceOfficer);
+  const [metaPixelId, setMetaPixelId] = useState(initial.metaPixelId);
   const [boxFee, setBoxFee] = useState(String(initial.hamperBoxFee));
   const [hamperDiscount, setHamperDiscount] = useState(String(initial.hamperDiscountPercent));
   const [freeOver, setFreeOver] = useState(String(initial.freeShippingOver));
@@ -118,6 +119,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
       businessAddress,
       gstin,
       grievanceOfficer: grievance,
+      metaPixelId,
       hamperBoxFee: Number(boxFee),
       hamperDiscountPercent: Number(hamperDiscount),
       freeShippingOver: Number(freeOver),
@@ -327,6 +329,33 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
             <span className="mt-1 block text-xs text-faint">Their name. Customers reach them on the contact details above.</span>
           </label>
         </div>
+      </Section>
+
+      <Section
+        title={
+          <>
+            Facebook and <em>Instagram ads</em>
+          </>
+        }
+      >
+        <label className="block text-sm text-mist">
+          Meta Pixel ID <span className="text-faint">(optional)</span>
+          <input
+            value={metaPixelId}
+            inputMode="numeric"
+            maxLength={20}
+            onChange={(e) => setMetaPixelId(e.target.value.replace(/\D/g, ""))}
+            placeholder="For example 1234567890123456"
+            className={field}
+          />
+          <span className="mt-1 block text-xs text-faint">
+            From Meta Events Manager. With it, Meta sees product views, bag additions and orders so it can show your products to the
+            right people. Leave empty to turn tracking off.
+          </span>
+        </label>
+        <p className="text-xs text-faint">
+          The product list for your catalog is at <span className="text-cream">https://kalogifts.com/feed/meta.csv</span>
+        </p>
       </Section>
 
       <Section
