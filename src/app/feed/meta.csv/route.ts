@@ -25,7 +25,7 @@ const COLUMNS = [
 
 const cell = (v: string) => `"${v.replace(/\r?\n/g, " ").replace(/"/g, '""')}"`;
 
-const photo = (src: string) => `${site.url}/feed/image?src=${encodeURIComponent(src)}`;
+const photo = (src: string) => `${site.url}/feed/image?src=${encodeURIComponent(src)}&v=2`;
 
 export async function GET() {
   const products = (await getProducts()).filter((p) => !p.buildYourOwn && p.images.length > 0);
