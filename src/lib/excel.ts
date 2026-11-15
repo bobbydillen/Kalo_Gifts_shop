@@ -1,7 +1,7 @@
 import writeXlsxFile, { type Cell, type Sheet, type SheetData } from "write-excel-file/node";
 import { categoryLabels, type Category } from "@/lib/catalog";
 import { paymentLabel } from "@/lib/checkout";
-import { kindLabel, type Entry, type Partner, type Summary } from "@/lib/partners";
+import { kindLabel, type Entry, type Partner, type Summary } from "@/lib/partner-data";
 import {
   isCounted,
   toIst,

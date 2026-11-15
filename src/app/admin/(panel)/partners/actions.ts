@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { CATEGORIES, KINDS, partnerContext } from "@/lib/partners";
+import { CATEGORIES, KINDS } from "@/lib/partner-data";
+import { partnerContext } from "@/lib/partners";
 
 export type PartnerResult = { ok: true } | { ok: false; error: string };
 

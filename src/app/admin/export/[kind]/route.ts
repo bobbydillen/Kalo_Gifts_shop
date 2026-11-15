@@ -1,6 +1,7 @@
 import { adminClient } from "@/lib/admin-auth";
 import { customersWorkbook, ledgerWorkbook, productsWorkbook } from "@/lib/excel";
-import { loadEntries, partnerContext, summarise } from "@/lib/partners";
+import { summarise } from "@/lib/partner-data";
+import { loadEntries, partnerContext } from "@/lib/partners";
 import { loadCustomerReport, loadProductReport } from "@/lib/reports";
 
 const XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";

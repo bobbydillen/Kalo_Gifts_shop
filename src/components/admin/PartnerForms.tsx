@@ -11,7 +11,7 @@ import {
   voidEntry,
   type PartnerResult,
 } from "@/app/admin/(panel)/partners/actions";
-import { CATEGORIES, KINDS, type Partner } from "@/lib/partners";
+import { CATEGORIES, KINDS, type Partner } from "@/lib/partner-data";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 const field =

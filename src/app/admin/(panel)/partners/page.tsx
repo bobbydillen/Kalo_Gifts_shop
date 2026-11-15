@@ -1,17 +1,8 @@
 import Link from "next/link";
 import { PartnersOnly } from "@/components/admin/PartnersOnly";
 import { BillButton, EntryForm, VoidForm } from "@/components/admin/PartnerForms";
-import {
-  CATEGORIES,
-  KINDS,
-  evenUp,
-  inr,
-  kindLabel,
-  loadEntries,
-  partnerContext,
-  summarise,
-  todayIst,
-} from "@/lib/partners";
+import { CATEGORIES, KINDS, evenUp, inr, kindLabel, summarise, todayIst } from "@/lib/partner-data";
+import { loadEntries, partnerContext } from "@/lib/partners";
 
 export const metadata = { title: "Partners" };
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ConfirmButton, MonthStartForm } from "@/components/admin/PartnerForms";
-import { inr, loadChecks, partnerContext, todayIst } from "@/lib/partners";
+import { inr, todayIst } from "@/lib/partner-data";
+import { loadChecks, partnerContext } from "@/lib/partners";
 import { PartnersOnly } from "@/components/admin/PartnersOnly";
 
 export const metadata = { title: "Month-end check" };
