@@ -372,6 +372,9 @@ function Orders({ who }: { who: string }) {
                     )}
                     <p className="font-serif text-2xl text-gold-light">{formatPrice(order.total)}</p>
                   </div>
+                  <a href={`/invoice/${order.id}`} target="_blank" rel="noopener" className="mt-3 inline-block text-sm text-gold-light underline underline-offset-4">
+                    View or download invoice
+                  </a>
                 </li>
               ))}
             </ul>

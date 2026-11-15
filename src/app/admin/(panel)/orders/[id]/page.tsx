@@ -76,6 +76,9 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
       <p className="mt-2 text-sm text-faint">
         Placed {formatDate(order.created_at)} · {paymentLabel(order.payment_method)} · Payment: {order.payment_status}
       </p>
+      <Link href={`/invoice/${order.id}`} target="_blank" className="btn btn-outline mt-4">
+        Open invoice
+      </Link>
 
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-6">
