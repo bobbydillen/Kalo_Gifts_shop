@@ -8,7 +8,7 @@ export type PartnerResult = { ok: true } | { ok: false; error: string };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ERRORS: Record<string, string> = {
-  MONTH_LOCKED: "That month is locked: both partners confirmed it.",
+  MONTH_LOCKED: "That month is locked: you both confirmed it.",
   REASON_REQUIRED: "Write a short reason.",
   NOT_FOUND: "That entry could not be found or is already voided.",
   MONTH_NOT_OVER: "A month can be checked only after it ends.",
@@ -24,7 +24,7 @@ const friendly = (message: string | undefined) => {
 
 export async function addEntry(formData: FormData): Promise<PartnerResult> {
   const ctx = await partnerContext();
-  if (!ctx) return { ok: false, error: "Partners only." };
+  if (!ctx) return { ok: false, error: "Accounts are for the two owners only." };
 
   const kind = KINDS.find((k) => k.id === String(formData.get("kind")));
   if (!kind) return { ok: false, error: "Choose what happened." };
@@ -33,7 +33,7 @@ export async function addEntry(formData: FormData): Promise<PartnerResult> {
   const date = String(formData.get("date") ?? "");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { ok: false, error: "Choose the date." };
   const partnerId = String(formData.get("partner") ?? "");
-  if (kind.needsPartner && !ctx.partners.some((p) => p.user_id === partnerId)) return { ok: false, error: "Choose which partner." };
+  if (kind.needsPartner && !ctx.partners.some((p) => p.user_id === partnerId)) return { ok: false, error: "Choose who paid." };
   const category = CATEGORIES.includes(String(formData.get("category"))) ? String(formData.get("category")) : "Other";
   const note = String(formData.get("note") ?? "").trim().slice(0, 500);
 
@@ -65,7 +65,7 @@ export async function addEntry(formData: FormData): Promise<PartnerResult> {
 
 export async function voidEntry(formData: FormData): Promise<PartnerResult> {
   const ctx = await partnerContext();
-  if (!ctx) return { ok: false, error: "Partners only." };
+  if (!ctx) return { ok: false, error: "Accounts are for the two owners only." };
   const id = String(formData.get("id") ?? "");
   if (!UUID.test(id)) return { ok: false, error: "That entry could not be found." };
   const { error } = await ctx.supabase.rpc("void_entry", { p_id: id, p_reason: String(formData.get("reason") ?? "") });
@@ -76,7 +76,7 @@ export async function voidEntry(formData: FormData): Promise<PartnerResult> {
 
 export async function startMonthCheck(formData: FormData): Promise<PartnerResult> {
   const ctx = await partnerContext();
-  if (!ctx) return { ok: false, error: "Partners only." };
+  if (!ctx) return { ok: false, error: "Accounts are for the two owners only." };
   const month = String(formData.get("month") ?? "");
   const real = Number(formData.get("real"));
   if (!/^\d{4}-\d{2}-01$/.test(month) || !Number.isFinite(real)) return { ok: false, error: "Enter the real bank balance." };
@@ -88,7 +88,7 @@ export async function startMonthCheck(formData: FormData): Promise<PartnerResult
 
 export async function confirmMonth(formData: FormData): Promise<PartnerResult> {
   const ctx = await partnerContext();
-  if (!ctx) return { ok: false, error: "Partners only." };
+  if (!ctx) return { ok: false, error: "Accounts are for the two owners only." };
   const { error } = await ctx.supabase.rpc("confirm_month", { p_month: String(formData.get("month") ?? "") });
   if (error) return { ok: false, error: friendly(error.message) };
   revalidatePath("/admin/partners", "layout");
@@ -97,7 +97,7 @@ export async function confirmMonth(formData: FormData): Promise<PartnerResult> {
 
 export async function changeUsername(formData: FormData): Promise<PartnerResult> {
   const ctx = await partnerContext();
-  if (!ctx) return { ok: false, error: "Partners only." };
+  if (!ctx) return { ok: false, error: "Accounts are for the two owners only." };
   const { error } = await ctx.supabase.rpc("change_username", { p_username: String(formData.get("username") ?? "") });
   if (error) return { ok: false, error: friendly(error.message) };
   revalidatePath("/admin", "layout");

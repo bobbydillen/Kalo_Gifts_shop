@@ -13,7 +13,7 @@ const base = [
 
 export function AdminNav({ partner = false }: { partner?: boolean }) {
   const path = usePathname();
-  const items = partner ? [...base.slice(0, 4), { href: "/admin/partners", label: "Partners" }, ...base.slice(4)] : base;
+  const items = partner ? [...base.slice(0, 4), { href: "/admin/partners", label: "Accounts" }, ...base.slice(4)] : base;
   return (
     <nav aria-label="Admin" className="flex gap-1 overflow-x-auto lg:flex-col">
       {items.map((item) => {

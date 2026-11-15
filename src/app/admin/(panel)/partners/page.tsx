@@ -4,7 +4,7 @@ import { BillButton, EntryForm, VoidForm } from "@/components/admin/PartnerForms
 import { CATEGORIES, KINDS, evenUp, inr, kindLabel, summarise, todayIst } from "@/lib/partner-data";
 import { loadEntries, partnerContext } from "@/lib/partners";
 
-export const metadata = { title: "Partners" };
+export const metadata = { title: "Accounts" };
 
 export default async function PartnersPage({ searchParams }: PageProps<"/admin/partners">) {
   const ctx = await partnerContext();
@@ -39,7 +39,7 @@ export default async function PartnersPage({ searchParams }: PageProps<"/admin/p
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="text-4xl">
-          Partner <em>accounts</em>
+          <em>Accounts</em>
         </h1>
         <nav className="flex gap-4 text-sm">
           <Link href="/admin/partners/month" className="underline underline-offset-4 hover:text-gold">
@@ -65,7 +65,7 @@ export default async function PartnersPage({ searchParams }: PageProps<"/admin/p
       </section>
       <p className="rounded-2xl border border-gold/40 bg-gold/10 px-5 py-4 text-sm">
         <strong>Evening up: </strong>
-        {ctx.partners.length < 2 ? "Waiting for the second partner to join." : settle?.text}{" "}
+        {ctx.partners.length < 2 ? "Waiting for the second person to join." : settle?.text}{" "}
         <span className="text-mist">Total expenses so far: {inr(summary.expenses)}.</span>
       </p>
 
@@ -94,8 +94,8 @@ export default async function PartnersPage({ searchParams }: PageProps<"/admin/p
               <option key={c}>{c}</option>
             ))}
           </select>
-          <select name="p" defaultValue={who} className={selectClass} aria-label="Partner">
-            <option value="">Both partners</option>
+          <select name="p" defaultValue={who} className={selectClass} aria-label="Who paid">
+            <option value="">Everyone</option>
             {ctx.partners.map((p) => (
               <option key={p.user_id} value={p.user_id}>
                 {p.display_name}
@@ -117,7 +117,7 @@ export default async function PartnersPage({ searchParams }: PageProps<"/admin/p
               <tr>
                 <th className="px-4 py-3">Date</th>
                 <th className="px-4 py-3">What</th>
-                <th className="px-4 py-3">Partner</th>
+                <th className="px-4 py-3">Who paid</th>
                 <th className="px-4 py-3">Category / note</th>
                 <th className="px-4 py-3 text-right">Amount</th>
               </tr>
@@ -165,7 +165,7 @@ export default async function PartnersPage({ searchParams }: PageProps<"/admin/p
         </div>
         <p className="mt-3 text-xs text-faint">
           Entries are never deleted. A wrong entry is voided with a reason and entered again correctly. &ldquo;Paid personally&rdquo; counts
-          towards a partner&rsquo;s capital but does not change the bank balance.
+          towards the payer&rsquo;s share but does not change the bank balance.
         </p>
       </section>
     </div>

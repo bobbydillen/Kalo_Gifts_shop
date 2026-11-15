@@ -25,7 +25,7 @@ export default async function MonthPage() {
     <div className="max-w-3xl space-y-8">
       <div>
         <Link href="/admin/partners" className="text-sm text-mist underline underline-offset-4">
-          ← Partner accounts
+          ← Accounts
         </Link>
         <h1 className="mt-3 text-4xl">
           Month-end <em>check</em>
@@ -34,7 +34,7 @@ export default async function MonthPage() {
           <li>On the 1st, open your bank statement and note the balance on the last day of the month.</li>
           <li>Type it below. The app shows whether it matches its own balance.</li>
           <li>If it differs, add the missing entries (a &ldquo;Correction&rdquo; category helps) and check again.</li>
-          <li>When the numbers match, both partners tap Confirm. The month is then locked.</li>
+          <li>When the numbers match, you both tap Confirm. The month is then locked.</li>
         </ol>
       </div>
 
@@ -65,7 +65,7 @@ export default async function MonthPage() {
               <div className="mt-4 space-y-4">
                 <MonthStartForm month={month} />
                 {check && !mine && <ConfirmButton month={month} />}
-                {check && mine && <p className="text-sm text-mist">You confirmed. Waiting for the other partner.</p>}
+                {check && mine && <p className="text-sm text-mist">You confirmed. Waiting for the other person.</p>}
               </div>
             )}
           </section>

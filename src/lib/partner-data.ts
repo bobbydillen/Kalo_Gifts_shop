@@ -1,10 +1,10 @@
 export type EntryKind = "put_in" | "paid_bank" | "paid_personally" | "taken_out" | "money_in";
 
 export const KINDS: { id: EntryKind; label: string; help: string; needsPartner: boolean; partnerLabel?: string }[] = [
-  { id: "put_in", label: "Put into bank", help: "A partner deposits money into the business account.", needsPartner: true, partnerLabel: "Who put it in" },
+  { id: "put_in", label: "Put into bank", help: "One of you deposits money into the business account.", needsPartner: true, partnerLabel: "Who put it in" },
   { id: "paid_bank", label: "Paid from bank", help: "Paid from the business account (stock, fuel, ads…).", needsPartner: false },
-  { id: "paid_personally", label: "Paid personally", help: "A partner paid a shop or bill from their own account.", needsPartner: true, partnerLabel: "Who paid" },
-  { id: "taken_out", label: "Taken out", help: "A partner withdraws money, or is repaid for a personal payment.", needsPartner: true, partnerLabel: "Who took it" },
+  { id: "paid_personally", label: "Paid personally", help: "One of you paid a shop or bill from their own account.", needsPartner: true, partnerLabel: "Who paid" },
+  { id: "taken_out", label: "Taken out", help: "One of you withdraws money, or is repaid for a personal payment.", needsPartner: true, partnerLabel: "Who took it" },
   { id: "money_in", label: "Money in", help: "Sales money arrives in the account (payouts, payments).", needsPartner: false },
 ];
 

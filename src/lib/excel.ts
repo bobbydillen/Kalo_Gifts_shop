@@ -292,7 +292,7 @@ export function ledgerWorkbook(entries: Entry[], partners: Partner[], summary: S
       [
         { title: "Date", width: 14 },
         { title: "What", width: 18 },
-        { title: "Partner", width: 14 },
+        { title: "Who paid", width: 14 },
         { title: "Category", width: 16 },
         { title: "Note", width: 36 },
         { title: "Amount", width: 14 },
