@@ -8,8 +8,6 @@ import {
   confirmationMessage,
   formatDate,
   statusLabel,
-  statusMessage,
-  whatsappLink,
   type OrderEventRow,
   type OrderItemRow,
   type OrderRow,
@@ -77,9 +75,11 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
       <p className="mt-2 text-sm text-faint">
         Placed {formatDate(order.created_at)} · {paymentLabel(order.payment_method)} · Payment: {order.payment_status}
       </p>
-      <Link href={`/invoice/${order.id}`} target="_blank" className="btn btn-outline mt-4">
-        Open invoice
-      </Link>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <Link href={`/invoice/${order.id}`} target="_blank" className="btn btn-outline">
+          Open invoice
+        </Link>
+      </div>
 
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-6">
@@ -236,6 +236,23 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
         </div>
 
         <div className="space-y-6">
+          <section aria-labelledby="update-title" className="rounded-2xl border border-hair bg-pine p-6">
+            <h2 id="update-title" className="text-2xl">
+              Update <em>order</em>
+            </h2>
+            <div className="mt-5">
+              <OrderControls
+                id={order.id}
+                status={order.status}
+                trackingNote={order.tracking_note}
+                number={order.number}
+                name={order.ship_name}
+                phone={order.ship_phone}
+                confirmation={confirmationMessage({ ...order, order_items: items })}
+              />
+            </div>
+          </section>
+
           <section aria-labelledby="ship-title" className="rounded-2xl border border-hair bg-pine p-6">
             <h2 id="ship-title" className="text-2xl">
               Deliver <em>to</em>
@@ -250,15 +267,6 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
                 {order.customer_note}
               </p>
             )}
-            <a
-              href={whatsappLink(order.ship_phone, order.status === "new" ? confirmationMessage({ ...order, order_items: items }) : statusMessage(order, order.status))}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-outline mt-5 w-full"
-            >
-              Message on WhatsApp
-            </a>
-            <p className="mt-2 text-xs text-faint">Opens WhatsApp with a message ready for you to check and send.</p>
           </section>
 
           <section aria-labelledby="ship-rocket-title" className="rounded-2xl border border-hair bg-pine p-6">
@@ -276,15 +284,6 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
                 trackingUrl={order.tracking_url}
                 status={order.shiprocket_status}
               />
-            </div>
-          </section>
-
-          <section aria-labelledby="update-title" className="rounded-2xl border border-hair bg-pine p-6">
-            <h2 id="update-title" className="text-2xl">
-              Update <em>order</em>
-            </h2>
-            <div className="mt-5">
-              <OrderControls id={order.id} status={order.status} trackingNote={order.tracking_note} />
             </div>
           </section>
         </div>

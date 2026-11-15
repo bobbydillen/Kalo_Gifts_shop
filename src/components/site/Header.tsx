@@ -14,6 +14,15 @@ export function Header() {
   const { count, setOpen: openBag } = useBag();
   const settings = useSettings();
   const navLinks = navLinksFor(settings.christmasHero, settings.customerLogin);
+  // Half the links go left of the logo, half right of it, so the logo stays centred and nothing wraps.
+  const split = Math.ceil(navLinks.length / 2);
+  const leftLinks = navLinks.slice(0, split);
+  const rightLinks = navLinks.slice(split);
+  const linkClass = (seasonal?: boolean) =>
+    `group relative whitespace-nowrap py-2 text-sm transition-colors duration-300 hover:text-cream ${seasonal ? "text-gold-light" : "text-mist"}`;
+  const underline = (
+    <span className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-gold transition-transform duration-500 ease-glide group-hover:scale-x-100" />
+  );
 
   // Close the phone menu with Escape, and stop the page scrolling behind it.
   useEffect(() => {
@@ -43,16 +52,12 @@ export function Header() {
       </div>
 
       <header className="sticky top-0 z-40 border-b border-hair bg-night/70 backdrop-blur-xl backdrop-saturate-150">
-        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 sm:px-6 lg:h-20">
-          <nav aria-label="Main" className="hidden items-center gap-8 lg:flex">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`group relative py-2 text-sm transition-colors duration-300 hover:text-cream ${link.seasonal ? "text-gold-light" : "text-mist"}`}
-              >
+        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 px-4 sm:px-6 lg:h-20">
+          <nav aria-label="Main" className="hidden items-center gap-6 lg:flex xl:gap-9">
+            {leftLinks.map((link) => (
+              <Link key={link.href} href={link.href} className={linkClass(link.seasonal)}>
                 {link.label}
-                <span className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-gold transition-transform duration-500 ease-glide group-hover:scale-x-100" />
+                {underline}
               </Link>
             ))}
           </nav>
@@ -93,21 +98,31 @@ export function Header() {
             </span>
           </Link>
 
-          <button
-            type="button"
-            aria-label={`Bag, ${count} ${count === 1 ? "item" : "items"}`}
-            aria-haspopup="dialog"
-            onClick={() => openBag(true)}
-            className="flex items-center gap-2.5 justify-self-end rounded-full border border-hair-2 py-1.5 pl-4 pr-1.5 text-[0.8125rem] tracking-[0.06em] transition-[transform,border-color] duration-500 ease-bounce hover:border-gold active:scale-95"
-          >
-            Bag
-            <span
-              key={count}
-              className={`grid size-7 place-items-center rounded-full bg-gold-light text-xs font-semibold text-night ${count ? "bump" : ""}`}
+          <div className="flex items-center justify-self-end gap-6 xl:gap-9">
+            <nav aria-label="More" className="hidden items-center gap-6 lg:flex xl:gap-9">
+              {rightLinks.map((link) => (
+                <Link key={link.href} href={link.href} className={linkClass(link.seasonal)}>
+                  {link.label}
+                  {underline}
+                </Link>
+              ))}
+            </nav>
+            <button
+              type="button"
+              aria-label={`Bag, ${count} ${count === 1 ? "item" : "items"}`}
+              aria-haspopup="dialog"
+              onClick={() => openBag(true)}
+              className="flex items-center gap-2.5 rounded-full border border-hair-2 py-1.5 pl-4 pr-1.5 text-[0.8125rem] tracking-[0.06em] transition-[transform,border-color] duration-500 ease-bounce hover:border-gold active:scale-95"
             >
-              {count}
-            </span>
-          </button>
+              Bag
+              <span
+                key={count}
+                className={`grid size-7 place-items-center rounded-full bg-gold-light text-xs font-semibold text-night ${count ? "bump" : ""}`}
+              >
+                {count}
+              </span>
+            </button>
+          </div>
         </div>
         <ScrollRibbon />
       </header>

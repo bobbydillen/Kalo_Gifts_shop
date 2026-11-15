@@ -21,9 +21,6 @@ export function Shell({ email, partner = false, children }: { email: string; par
           <p className="truncate" title={email}>
             {email}
           </p>
-          <Link href="/admin/account" className="mt-2 block underline underline-offset-4 hover:text-cream">
-            My account
-          </Link>
           <form action={signOut} className="mt-2">
             <button className="underline underline-offset-4 hover:text-cream">Sign out</button>
           </form>
