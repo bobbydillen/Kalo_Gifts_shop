@@ -12,6 +12,8 @@ import { Reveal } from "@/components/ui/Reveal";
 import { Rise } from "@/components/ui/Rise";
 import { categoryOf, createCatalog, formatPrice, fromPrice } from "@/lib/catalog";
 import { getProducts } from "@/lib/catalog-data";
+import { JsonLd } from "@/components/site/JsonLd";
+import { site } from "@/lib/site";
 
 export async function generateStaticParams() {
   const products = await getProducts();
@@ -21,7 +23,21 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/product/[slug]">): Promise<Metadata> {
   const product = createCatalog(await getProducts()).productBySlug((await params).slug);
-  return product ? { title: product.name, description: product.description } : {};
+  if (!product) return {};
+  const image = product.images[0];
+  return {
+    title: product.name,
+    description: product.description,
+    alternates: { canonical: `/product/${product.slug}` },
+    openGraph: {
+      type: "website",
+      title: `${product.name} · ${site.name}`,
+      description: product.description,
+      url: `/product/${product.slug}`,
+      ...(image ? { images: [{ url: image, alt: product.name }] } : {}),
+    },
+    twitter: { card: image ? "summary_large_image" : "summary", title: product.name, description: product.description, ...(image ? { images: [image] } : {}) },
+  };
 }
 
 /** The address is read inside Suspense so moving between pages stays instant. */
@@ -44,8 +60,30 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
   const related = catalog.relatedTo(product);
   const designs = catalog.designsOf(product);
 
+  const tracked = Object.values(product.stock);
+  const inStock = tracked.length === 0 || tracked.some((n) => n > 0);
+
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.name,
+          description: product.description,
+          category: category.label,
+          brand: { "@type": "Brand", name: site.name },
+          ...(product.images.length ? { image: product.images.map((i) => (i.startsWith("/") ? `${site.url}${i}` : i)) } : {}),
+          url: `${site.url}/product/${product.slug}`,
+          offers: {
+            "@type": "Offer",
+            priceCurrency: "INR",
+            price: fromPrice(product),
+            availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            url: `${site.url}/product/${product.slug}`,
+          },
+        }}
+      />
       <div className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 lg:pb-28 lg:pt-12">
         <nav aria-label="Breadcrumb" className="text-sm text-faint">
           <ol className="flex flex-wrap items-center gap-2">

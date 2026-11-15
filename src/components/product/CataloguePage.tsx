@@ -16,12 +16,15 @@ export async function CataloguePage({
   intro,
   items,
   active,
+  about,
 }: {
   kicker: string;
   title: ReactNode;
   intro: string;
   items: Product[];
   active: string | null; // category slug, or null for "all"
+  /** Optional paragraph under the products. */
+  about?: { heading: string; text: string };
 }) {
   const { productsIn } = createCatalog(await getProducts());
   const chips = [
@@ -80,6 +83,13 @@ export async function CataloguePage({
           </Reveal>
         ))}
       </div>
+
+      {about && (
+        <section className="mt-20 max-w-3xl border-t border-hair pt-10">
+          <h2 className="text-2xl">{about.heading}</h2>
+          <p className="mt-4 text-mist">{about.text}</p>
+        </section>
+      )}
     </div>
   );
 }

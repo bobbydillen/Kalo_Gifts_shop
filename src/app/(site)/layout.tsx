@@ -1,3 +1,5 @@
+import { JsonLd } from "@/components/site/JsonLd";
+import { site } from "@/lib/site";
 import { BagDrawer } from "@/components/bag/BagDrawer";
 import { BagProvider } from "@/components/bag/BagProvider";
 import { Loader } from "@/components/brand/Loader";
@@ -16,6 +18,15 @@ export default async function SiteLayout({ children }: LayoutProps<"/">) {
 
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@graph": [
+            { "@type": "Organization", "@id": `${site.url}/#org`, name: site.name, url: site.url, logo: `${site.url}${site.logo}`, description: site.description },
+            { "@type": "WebSite", "@id": `${site.url}/#site`, name: site.name, url: site.url, publisher: { "@id": `${site.url}/#org` }, inLanguage: "en-IN" },
+          ],
+        }}
+      />
       <Loader />
       <SettingsProvider settings={settings}>
         <CatalogProvider products={products}>

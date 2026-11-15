@@ -42,15 +42,91 @@ export type Product = {
   weightG: number; // packed parcel weight in grams, for the delivery cost
 };
 
-export const categories: { id: Category; label: string; slug: string; intro: string }[] = [
-  { id: "tshirt", label: "T-shirts", slug: "t-shirts", intro: "Oversized tees with a quiet word on them." },
-  { id: "hoodie", label: "Hoodies", slug: "hoodies", intro: "Heavy, soft layers for slow mornings." },
-  { id: "cap", label: "Caps", slug: "caps", intro: "A small reminder, worn every day." },
-  { id: "tote", label: "Tote bags", slug: "tote-bags", intro: "Sturdy canvas for the daily round." },
-  { id: "bottle", label: "Bottles", slug: "bottles", intro: "A verse to sip by, all day long." },
-  { id: "keychain", label: "Keychains", slug: "keychains", intro: "Little keepsakes that travel with you." },
-  { id: "hamper", label: "Hampers", slug: "hampers", intro: "Chosen, wrapped and ready to give." },
-  { id: "frame", label: "Photo frames", slug: "photo-frames", intro: "Your favourite moment, printed and framed." },
+export type CategoryInfo = {
+  id: Category;
+  label: string;
+  slug: string;
+  intro: string;
+  /** For the browser tab and search results. Written around what people type into Google. */
+  seoTitle: string;
+  seoDescription: string;
+  /** A short paragraph under the products, for visitors and search engines. */
+  about: string;
+};
+
+export const categories: CategoryInfo[] = [
+  {
+    id: "tshirt",
+    label: "T-shirts",
+    slug: "t-shirts",
+    intro: "Oversized tees with a quiet word on them.",
+    seoTitle: "Christian T-shirts: printed Christian tees with Bible verses",
+    seoDescription: "Printed Christian T-shirts: oversized tees with Bible verses and faith-inspired words. Made to wear and to gift, delivered across India.",
+    about: "Our printed Christian T-shirts carry a Bible verse or a short line of faith, printed in designs made to be worn every day rather than only on Sundays. Pick a colour and size, add a handwritten card if it is a gift, and we pack it with care and deliver across India. A Bible verse tee is an easy gift for a friend, a youth group, a birthday or Christmas.",
+  },
+  {
+    id: "hoodie",
+    label: "Hoodies",
+    slug: "hoodies",
+    intro: "Heavy, soft layers for slow mornings.",
+    seoTitle: "Christian hoodies with Bible verses",
+    seoDescription: "Warm Christian hoodies with Bible verses and faith-inspired designs. A thoughtful gift for Christmas and the cold season, delivered across India.",
+    about: "These Christian hoodies are heavy and soft, with a Bible verse or faith-inspired design you will want to wear all winter. They make a lasting Christmas gift for family, friends or your church group. Choose your colour and size, add gift wrap and a handwritten card, and we deliver across India.",
+  },
+  {
+    id: "cap",
+    label: "Caps",
+    slug: "caps",
+    intro: "A small reminder, worn every day.",
+    seoTitle: "Christian caps with faith-inspired designs",
+    seoDescription: "Christian caps with a small Bible verse or faith design. An easy, thoughtful gift, delivered across India.",
+    about: "A cap is a small way to carry your faith through the day. Our Christian caps feature simple faith-inspired designs, and they make an easy gift for a friend, a youth group or a stocking at Christmas. Delivered across India.",
+  },
+  {
+    id: "tote",
+    label: "Tote bags",
+    slug: "tote-bags",
+    intro: "Sturdy canvas for the daily round.",
+    seoTitle: "Christian tote bags with Bible verses",
+    seoDescription: "Sturdy canvas Christian tote bags printed with Bible verses. A practical faith-inspired gift, delivered across India.",
+    about: "Our canvas tote bags are printed with Bible verses and faith-inspired designs, strong enough for church, college, work or the market. A practical Christian gift that people use again and again. Delivered across India.",
+  },
+  {
+    id: "bottle",
+    label: "Bottles",
+    slug: "bottles",
+    intro: "A verse to sip by, all day long.",
+    seoTitle: "Bible verse water bottles and Christian printed bottles",
+    seoDescription: "Christian water bottles printed with Bible verses. A verse to sip by all day, and an everyday gift for church, school and work. Delivered across India.",
+    about: "A Bible verse water bottle keeps a promise within reach all day. Our Christian bottles are printed with verses and faith-inspired designs, and they are a practical gift for church, school, college or the office. Gift wrap and a handwritten card are available, and we deliver across India.",
+  },
+  {
+    id: "keychain",
+    label: "Keychains",
+    slug: "keychains",
+    intro: "Little keepsakes that travel with you.",
+    seoTitle: "Christian keychains with Bible verses",
+    seoDescription: "Small Christian keychains with Bible verses and faith-inspired designs. Easy gifts and keepsakes, delivered across India.",
+    about: "Small keepsakes that travel with you. Our Christian keychains carry a Bible verse or a short blessing, and they work well as a thank-you gift, a Sunday school prize, or a small addition to a Christmas hamper. Delivered across India.",
+  },
+  {
+    id: "hamper",
+    label: "Hampers",
+    slug: "hampers",
+    intro: "Chosen, wrapped and ready to give.",
+    seoTitle: "Christian gift hampers and Christmas hampers",
+    seoDescription: "Christian gift hampers and Christmas hampers, ready to give. Or build your own hamper with your choice of tees, bottles and keepsakes. Delivered across India.",
+    about: "Our Christian gift hampers bring several faith-inspired pieces together, wrapped and ready to give. They suit Christmas, birthdays, baptisms, anniversaries and thank-you gifts. If you would rather choose each piece yourself, build your own hamper: pick the items, colours and sizes, and we pack them together with care and deliver across India.",
+  },
+  {
+    id: "frame",
+    label: "Photo frames",
+    slug: "photo-frames",
+    intro: "Your favourite moment, printed and framed.",
+    seoTitle: "Personalised photo frames and custom photo gifts",
+    seoDescription: "Personalised photo frames: upload your favourite photo and we print and frame it. A custom gift for family, anniversaries and Christmas, delivered across India.",
+    about: "Upload your favourite photo and we print and frame it for you. A custom photo frame is a gift that means more than something off the shelf: a family portrait, a wedding or anniversary memory, a first year of a child. Choose your frame size, and we deliver across India.",
+  },
 ];
 
 export const categoryLabels = Object.fromEntries(categories.map((c) => [c.id, c.label])) as Record<

@@ -5,9 +5,11 @@
 
 export const site = {
   name: "KALO Gifts",
+  url: "https://kalogifts.com",
+  logo: "/logo/kalo-badge-192.webp",
   tagline: "Artisanal gifts, made with heart.",
   description:
-    "Faith-inspired gifts and everyday pieces, thoughtfully designed and made to be shared.",
+    "Printed Christian T-shirts and gifts made with heart: Bible verse hoodies and water bottles, personalised photo frames and customised Christmas hampers. Delivered across India.",
 };
 
 const baseLinks = [

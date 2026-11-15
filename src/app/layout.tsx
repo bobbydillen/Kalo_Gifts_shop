@@ -24,8 +24,20 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: { default: site.name, template: `%s · ${site.name}` },
+  metadataBase: new URL(site.url),
+  title: { default: "Christian T-Shirts and Printed Christian Gifts | KALO Gifts", template: `%s · ${site.name}` },
   description: site.description,
+  applicationName: site.name,
+  alternates: { canonical: "./" },
+  openGraph: {
+    type: "website",
+    siteName: site.name,
+    locale: "en_IN",
+    title: site.name,
+    description: site.description,
+    images: [{ url: site.logo, width: 192, height: 192, alt: site.name }],
+  },
+  twitter: { card: "summary", title: site.name, description: site.description, images: [site.logo] },
 };
 
 export const viewport: Viewport = {

@@ -11,7 +11,9 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/gifts/[category]">): Promise<Metadata> {
   const category = categoryBySlug((await params).category);
-  return category ? { title: category.label, description: category.intro } : {};
+  return category
+    ? { title: category.seoTitle, description: category.seoDescription, alternates: { canonical: `/gifts/${category.slug}` } }
+    : {};
 }
 
 /** The address is read inside Suspense so moving between pages stays instant. */
@@ -35,6 +37,7 @@ async function CategoryPageContent({ params }: Pick<PageProps<"/gifts/[category]
       intro={category.intro}
       items={productsIn(category.id)}
       active={category.slug}
+      about={{ heading: category.seoTitle, text: category.about }}
     />
   );
 }

@@ -13,9 +13,10 @@ import { getProducts } from "@/lib/catalog-data";
 import { getSettings } from "@/lib/settings-data";
 
 export const metadata: Metadata = {
-  title: "Christmas gifts",
+  title: "Christian Christmas gifts and hampers",
   description:
-    "Christmas gifts and hampers from KALO Gifts. Thoughtful, faith-inspired pieces, gift wrapped with a personal note.",
+    "Christian Christmas gifts and Christmas hampers: Bible verse tees, bottles and keepsakes, gift wrapped with a handwritten card. Build your own Christmas hamper. Delivered across India.",
+  alternates: { canonical: "/christmas" },
 };
 
 

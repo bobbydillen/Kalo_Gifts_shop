@@ -3,8 +3,10 @@ import { CataloguePage } from "@/components/product/CataloguePage";
 import { getProducts } from "@/lib/catalog-data";
 
 export const metadata: Metadata = {
-  title: "All gifts",
-  description: "Every piece from KALO Gifts: tees, hoodies, caps, totes, bottles, keychains and hampers.",
+  title: "Christian gifts: Bible verse tees, bottles, hampers and more",
+  description:
+    "Shop Christian gifts online in India: Bible verse T-shirts and hoodies, printed water bottles, keychains, personalised photo frames and gift hampers for Christmas and every occasion.",
+  alternates: { canonical: "/gifts" },
 };
 
 export default async function GiftsPage() {
