@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
 import {
   addEntry,
+  editEntry,
   billLink,
   changeUsername,
   confirmMonth,
@@ -11,7 +12,7 @@ import {
   voidEntry,
   type PartnerResult,
 } from "@/app/admin/(panel)/partners/actions";
-import { CATEGORIES, KINDS, type Partner } from "@/lib/partner-data";
+import { CATEGORIES, KINDS, type Entry, type Partner } from "@/lib/partner-data";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 const field =
@@ -256,6 +257,80 @@ export function PasswordForm({ email }: { email: string }) {
       <button disabled={busy} className="btn btn-outline disabled:opacity-60">
         {busy ? "Saving…" : "Change password"}
       </button>
+    </form>
+  );
+}
+
+/** Opens a small form under an entry to correct it. The old version stays in the history as "Edited". */
+export function EditForm({ entry, partners }: { entry: Entry; partners: Partner[] }) {
+  const [open, setOpen] = useState(false);
+  const { state, busy, submit } = useAction(editEntry);
+  const [kind, setKind] = useState<string>(entry.kind);
+  const current = KINDS.find((k) => k.id === kind)!;
+  if (!open)
+    return (
+      <button onClick={() => setOpen(true)} className="text-xs text-faint underline underline-offset-4 hover:text-cream">
+        Edit
+      </button>
+    );
+  return (
+    <form onSubmit={submit} className="mt-3 grid gap-3 rounded-xl border border-hair-2 bg-night p-3 sm:grid-cols-2">
+      <input type="hidden" name="id" value={entry.id} />
+      <label className="block text-xs text-mist sm:col-span-2">
+        What happened
+        <select name="kind" value={kind} onChange={(e) => setKind(e.target.value)} className={field}>
+          {KINDS.map((k) => (
+            <option key={k.id} value={k.id}>
+              {k.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      {current.needsPartner && (
+        <label className="block text-xs text-mist">
+          {current.partnerLabel}
+          <select name="partner" defaultValue={entry.partner_id ?? partners[0]?.user_id} className={field}>
+            {partners.map((p) => (
+              <option key={p.user_id} value={p.user_id}>
+                {p.display_name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      <label className="block text-xs text-mist">
+        Amount (₹)
+        <input name="amount" type="number" step="0.01" min="0.01" required defaultValue={entry.amount} className={field} />
+      </label>
+      <label className="block text-xs text-mist">
+        Date
+        <input name="date" type="date" required defaultValue={entry.entry_date} className={field} />
+      </label>
+      <label className="block text-xs text-mist">
+        Category
+        <select name="category" defaultValue={entry.category} className={field}>
+          {CATEGORIES.map((c) => (
+            <option key={c}>{c}</option>
+          ))}
+        </select>
+      </label>
+      <label className="block text-xs text-mist sm:col-span-2">
+        Note
+        <input name="note" maxLength={500} defaultValue={entry.note} className={field} />
+      </label>
+      <label className="block text-xs text-mist sm:col-span-2">
+        New bill photo (leave empty to keep the current one)
+        <input name="bill" type="file" accept="image/*,application/pdf" className={field} />
+      </label>
+      <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
+        <button disabled={busy} className="chip disabled:opacity-60">
+          {busy ? "Saving…" : "Save changes"}
+        </button>
+        <button type="button" onClick={() => setOpen(false)} className="text-xs text-faint underline underline-offset-4">
+          Cancel
+        </button>
+        {state && !state.ok && <span className="text-xs text-berry-light">{state.error}</span>}
+      </div>
     </form>
   );
 }

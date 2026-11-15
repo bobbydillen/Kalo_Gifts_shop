@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PartnersOnly } from "@/components/admin/PartnersOnly";
-import { BillButton, EntryForm, VoidForm } from "@/components/admin/PartnerForms";
+import { BillButton, EditForm, EntryForm, VoidForm } from "@/components/admin/PartnerForms";
 import { CATEGORIES, KINDS, evenUp, inr, kindLabel, summarise, todayIst } from "@/lib/partner-data";
 import { loadEntries, partnerContext } from "@/lib/partners";
 
@@ -147,9 +147,11 @@ export default async function PartnersPage({ searchParams }: PageProps<"/admin/p
                     <td className="px-4 py-3">
                       {e.category}
                       {e.note && <span className="block text-xs text-mist">{e.note}</span>}
-                      {e.voided_at && <span className="block text-xs text-berry-light">Voided: {e.void_reason}</span>}
+                      {e.voided_at && <span className="block text-xs text-berry-light">{e.void_reason === "Edited" ? "Replaced by an edited entry" : `Voided: ${e.void_reason}`}</span>}
+                      {e.replaces && !e.voided_at && <span className="block text-xs text-faint">Edited</span>}
                       <div className="mt-1 flex gap-3">
                         {e.bill_path && <BillButton path={e.bill_path} />}
+                        {!e.voided_at && <EditForm entry={e} partners={ctx.partners} />}
                         {!e.voided_at && <VoidForm id={e.id} />}
                       </div>
                     </td>
@@ -164,7 +166,7 @@ export default async function PartnersPage({ searchParams }: PageProps<"/admin/p
           </table>
         </div>
         <p className="mt-3 text-xs text-faint">
-          Entries are never deleted. A wrong entry is voided with a reason and entered again correctly. &ldquo;Paid personally&rdquo; counts
+          Entries are never deleted. Editing keeps the old version in the history (struck through); voiding removes a wrong entry with a reason. &ldquo;Paid personally&rdquo; counts
           towards the payer&rsquo;s share but does not change the bank balance.
         </p>
       </section>

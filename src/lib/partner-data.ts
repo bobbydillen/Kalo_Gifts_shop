@@ -27,6 +27,7 @@ export type Entry = {
   created_at: string;
   voided_at: string | null;
   void_reason: string | null;
+  replaces: string | null;
 };
 
 export type MonthCheck = { month: string; real_balance: number; app_balance: number; started_by: string; confirmed: string[] };

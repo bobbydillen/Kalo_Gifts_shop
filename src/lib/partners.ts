@@ -17,7 +17,7 @@ export async function partnerContext() {
 export async function loadEntries(supabase: Awaited<ReturnType<typeof supabaseServer>>): Promise<Entry[]> {
   const { data } = await supabase
     .from("ledger_entries")
-    .select("id, entry_date, kind, partner_id, amount, category, note, bill_path, entered_by, created_at, voided_at, void_reason")
+    .select("id, entry_date, kind, partner_id, amount, category, note, bill_path, entered_by, created_at, voided_at, void_reason, replaces")
     .order("entry_date", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(5000);
