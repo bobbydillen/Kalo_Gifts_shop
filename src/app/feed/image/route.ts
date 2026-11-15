@@ -22,6 +22,7 @@ export async function GET(request: Request) {
   if (!upstream.ok) return new Response("Not found", { status: 404 });
   const original = Buffer.from(await upstream.arrayBuffer());
   const cache = "public, max-age=86400, s-maxage=86400";
+  const vary = "query=src"; // Netlify caches per address without its query string unless told otherwise
 
   try {
     const sharp = (await import("sharp")).default;
@@ -30,10 +31,10 @@ export async function GET(request: Request) {
       .flatten({ background: "#0b1d16" })
       .jpeg({ quality: 88 })
       .toBuffer();
-    return new Response(new Uint8Array(jpeg), { headers: { "Content-Type": "image/jpeg", "Cache-Control": cache } });
+    return new Response(new Uint8Array(jpeg), { headers: { "Content-Type": "image/jpeg", "Cache-Control": cache, "Netlify-Vary": vary } });
   } catch {
     return new Response(new Uint8Array(original), {
-      headers: { "Content-Type": upstream.headers.get("content-type") ?? "image/webp", "Cache-Control": cache },
+      headers: { "Content-Type": upstream.headers.get("content-type") ?? "image/webp", "Cache-Control": cache, "Netlify-Vary": vary },
     });
   }
 }
