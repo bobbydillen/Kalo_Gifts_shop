@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { StatusBadge } from "@/components/admin/StatusBadge";
-import { formatDate, isOrderStatus, ORDER_STATUSES } from "@/lib/admin";
+import { confirmationMessage, formatDate, isOrderStatus, ORDER_STATUSES, whatsappLink } from "@/lib/admin";
 import { formatPrice } from "@/lib/catalog";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -13,7 +13,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
   const supabase = await supabaseServer();
   let query = supabase
     .from("orders")
-    .select("id, number, status, payment_status, total, ship_name, ship_phone, created_at, order_items(qty)")
+    .select("id, number, status, payment_status, total, ship_name, ship_phone, created_at, delivery_fee, payment_method, order_items(qty, product_name, colour, size)")
     .order("created_at", { ascending: false })
     .limit(200);
   if (filter) query = query.eq("status", filter);
@@ -52,7 +52,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
         </p>
       ) : orders?.length ? (
         <div className="mt-6 overflow-x-auto rounded-2xl border border-hair bg-pine">
-          <table className="w-full min-w-[36rem] text-left">
+          <table className="w-full min-w-[44rem] text-left">
             <thead>
               <tr className="border-b border-hair text-[0.6875rem] uppercase tracking-[0.18em] text-faint">
                 <th className="px-5 py-4 font-normal">Order</th>
@@ -61,6 +61,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
                 <th className="px-3 py-4 font-normal">Items</th>
                 <th className="px-3 py-4 text-right font-normal">Total</th>
                 <th className="px-5 py-4 font-normal">Status</th>
+                <th className="px-5 py-4 font-normal">WhatsApp</th>
               </tr>
             </thead>
             <tbody>
@@ -82,6 +83,17 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
                     <td className="px-3 py-4 text-right tabular-nums text-gold-light">{formatPrice(order.total)}</td>
                     <td className="px-5 py-4">
                       <StatusBadge status={order.status} />
+                    </td>
+                    <td className="px-5 py-4">
+                      {/* sits above the row's click area, so tapping it does not open the order */}
+                      <a
+                        href={whatsappLink(order.ship_phone, confirmationMessage(order))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="chip relative z-10 whitespace-nowrap"
+                      >
+                        Send confirmation
+                      </a>
                     </td>
                   </tr>
                 );

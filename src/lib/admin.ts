@@ -82,6 +82,45 @@ export function whatsappLink(phone: string, text: string) {
   return `https://wa.me/${full}?text=${encodeURIComponent(text)}`;
 }
 
+/**
+ * The order confirmation and thank-you message for WhatsApp: what they ordered, the total and how it is paid.
+ * It only fills in the chat; the shop owner reads it and taps Send.
+ */
+export function confirmationMessage(order: {
+  number: number;
+  ship_name: string;
+  total: number;
+  delivery_fee: number;
+  payment_method: string;
+  payment_status: string;
+  order_items: { product_name: string; qty: number; colour?: string; size?: string }[];
+}) {
+  const name = order.ship_name.split(" ")[0] || "there";
+  const lines = order.order_items.map((i) => {
+    const options = [i.colour, i.size].filter(Boolean).join(", ");
+    return `- ${i.product_name}${options ? ` (${options})` : ""} x ${i.qty}`;
+  });
+  const total = `Rs. ${order.total.toLocaleString("en-IN")}`;
+  const pay =
+    order.payment_status === "paid"
+      ? "We have received your payment. Thank you!"
+      : order.payment_method === "cod"
+        ? `It is cash on delivery, so please keep ${total} ready for the courier.`
+        : order.payment_method === "test"
+          ? ""
+          : "We will share how to pay right here.";
+  return [
+    `Hi ${name}, thank you for your order at KALO Gifts!`,
+    "",
+    `Order #${order.number}`,
+    ...lines,
+    `Total: ${total}${order.delivery_fee > 0 ? " (delivery included)" : " (free delivery)"}`,
+    ...(pay ? ["", pay] : []),
+    "",
+    "We will pack it with care and send you the tracking details once it ships. Reply here if you need anything.",
+  ].join("\n");
+}
+
 /** Message suggested for the customer when an order reaches a given status. */
 export function statusMessage(order: Pick<OrderRow, "number" | "ship_name" | "tracking_note">, status: string) {
   const name = order.ship_name.split(" ")[0] || "there";

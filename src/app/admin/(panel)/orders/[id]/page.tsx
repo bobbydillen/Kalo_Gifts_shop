@@ -5,6 +5,7 @@ import { PrintButton } from "@/components/admin/PrintButton";
 import { ShiprocketPanel } from "@/components/admin/ShiprocketPanel";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import {
+  confirmationMessage,
   formatDate,
   statusLabel,
   statusMessage,
@@ -250,7 +251,7 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
               </p>
             )}
             <a
-              href={whatsappLink(order.ship_phone, statusMessage(order, order.status))}
+              href={whatsappLink(order.ship_phone, order.status === "new" ? confirmationMessage({ ...order, order_items: items }) : statusMessage(order, order.status))}
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-outline mt-5 w-full"
