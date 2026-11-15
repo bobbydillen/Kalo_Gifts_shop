@@ -1,6 +1,7 @@
 import writeXlsxFile, { type Cell, type Sheet, type SheetData } from "write-excel-file/node";
 import { categoryLabels, type Category } from "@/lib/catalog";
 import { paymentLabel } from "@/lib/checkout";
+import { kindLabel, type Entry, type Partner, type Summary } from "@/lib/partners";
 import {
   isCounted,
   toIst,
@@ -264,3 +265,42 @@ export function productsWorkbook(report: ProductReport) {
   return build([productSheet, variantSheet, monthSheet]);
 }
 
+
+/** The partner ledger: every entry, plus a summary sheet with the balances. */
+export function ledgerWorkbook(entries: Entry[], partners: Partner[], summary: Summary) {
+  const name = (id: string | null) => partners.find((p) => p.user_id === id)?.display_name ?? "";
+  const rows = entries.map((e): Cell[] => [
+    when(e.entry_date, DAYONLY),
+    text(kindLabel(e.kind)),
+    text(name(e.partner_id) || "Bank"),
+    text(e.category),
+    text(e.note),
+    money(e.amount),
+    text(name(e.entered_by)),
+    text(e.voided_at ? `Voided: ${e.void_reason ?? ""}` : ""),
+    yesNo(!!e.bill_path),
+  ]);
+  const summaryRows: Cell[][] = [
+    ["Bank balance now", money(summary.bank)],
+    ...partners.map((p): Cell[] => [`${p.display_name} has put in`, money(summary.capital.get(p.user_id) ?? 0)]),
+    ["Total expenses", money(summary.expenses)],
+  ];
+  return build([
+    sheet("Summary", [{ title: "Item", width: 28 }, { title: "Amount", width: 16 }], summaryRows),
+    sheet(
+      "Ledger",
+      [
+        { title: "Date", width: 14 },
+        { title: "What", width: 18 },
+        { title: "Partner", width: 14 },
+        { title: "Category", width: 16 },
+        { title: "Note", width: 36 },
+        { title: "Amount", width: 14 },
+        { title: "Entered by", width: 14 },
+        { title: "Voided", width: 30 },
+        { title: "Has bill", width: 10 },
+      ],
+      rows,
+    ),
+  ]);
+}

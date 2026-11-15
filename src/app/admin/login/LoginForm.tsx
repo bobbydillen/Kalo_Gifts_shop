@@ -19,9 +19,19 @@ export function LoginForm() {
     e.preventDefault();
     setError(null);
     setBusy(true);
-    const { error: failed } = await supabaseBrowser().auth.signInWithPassword({ email: email.trim(), password });
+    const supabase = supabaseBrowser();
+    let loginEmail = email.trim();
+    // A partner username (bobby@kalo, or just bobby) is turned into that account's email.
+    if (!/@.+\..+/.test(loginEmail)) {
+      const username = loginEmail.toLowerCase().replace(/@kalo$/, "") + "@kalo";
+      const { data } = await supabase.rpc("partner_login_email", { p_username: username });
+      loginEmail = typeof data === "string" ? data : "";
+    }
+    const { error: failed } = loginEmail
+      ? await supabase.auth.signInWithPassword({ email: loginEmail, password })
+      : { error: new Error("no such user") };
     if (failed) {
-      setError("That email and password do not match.");
+      setError("That username or email and password do not match.");
       setBusy(false);
       return;
     }
@@ -32,9 +42,9 @@ export function LoginForm() {
   return (
     <form onSubmit={submit} className="mt-10 space-y-5">
       <label className="block text-sm text-mist">
-        Email
+        Username or email
         <input
-          type="email"
+          type="text"
           required
           autoComplete="username"
           value={email}

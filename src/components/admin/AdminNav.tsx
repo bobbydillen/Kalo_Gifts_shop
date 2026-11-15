@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const items = [
+const base = [
   { href: "/admin", label: "Overview", exact: true },
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/customers", label: "Customers" },
@@ -11,8 +11,9 @@ const items = [
   { href: "/admin/settings", label: "Settings" },
 ];
 
-export function AdminNav() {
+export function AdminNav({ partner = false }: { partner?: boolean }) {
   const path = usePathname();
+  const items = partner ? [...base.slice(0, 4), { href: "/admin/partners", label: "Partners" }, ...base.slice(4)] : base;
   return (
     <nav aria-label="Admin" className="flex gap-1 overflow-x-auto lg:flex-col">
       {items.map((item) => {

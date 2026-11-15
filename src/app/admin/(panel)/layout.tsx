@@ -46,5 +46,11 @@ async function Gate({ children }: { children: ReactNode }) {
     );
   }
 
-  return <Shell email={user.email ?? ""}>{children}</Shell>;
+  const { data: partner } = await supabase.from("partners").select("user_id").eq("user_id", user.id).maybeSingle();
+
+  return (
+    <Shell email={user.email ?? ""} partner={!!partner}>
+      {children}
+    </Shell>
+  );
 }

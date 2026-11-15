@@ -4,7 +4,7 @@ import { signOut } from "@/app/admin/actions";
 import { AdminNav } from "@/components/admin/AdminNav";
 
 /** Frame around every signed-in admin screen. */
-export function Shell({ email, children }: { email: string; children: ReactNode }) {
+export function Shell({ email, partner = false, children }: { email: string; partner?: boolean; children: ReactNode }) {
   return (
     <div className="flex flex-1 flex-col lg:flex-row">
       <aside className="border-b border-hair bg-pine px-4 py-4 lg:w-64 lg:shrink-0 lg:border-b-0 lg:border-r lg:py-8">
@@ -16,11 +16,14 @@ export function Shell({ email, children }: { email: string; children: ReactNode 
             <button className="text-sm text-faint underline underline-offset-4 hover:text-cream">Sign out</button>
           </form>
         </div>
-        <AdminNav />
+        <AdminNav partner={partner} />
         <div className="mt-10 hidden border-t border-hair pt-5 text-sm text-faint lg:block">
           <p className="truncate" title={email}>
             {email}
           </p>
+          <Link href="/admin/account" className="mt-2 block underline underline-offset-4 hover:text-cream">
+            My account
+          </Link>
           <form action={signOut} className="mt-2">
             <button className="underline underline-offset-4 hover:text-cream">Sign out</button>
           </form>
