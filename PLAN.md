@@ -17,7 +17,7 @@ A fully custom online store for KALO Gifts, with its own admin panel, launching 
 |---|---|---|
 | Site and admin | Next.js + TypeScript + Tailwind CSS | Fast pages, good SEO, one codebase for shop and admin |
 | Database, logins, image storage | Supabase | Already connected to this workspace; no server to maintain |
-| Hosting | Vercel | Already connected; automatic deploys |
+| Hosting | Netlify (moved from Vercel) | Deploys from `main` on GitHub |
 | Payments | Razorpay (UPI, cards, netbanking, COD flag) | Standard for Indian stores |
 | Animation | Motion for interface, GSAP for the logo and hero | Detailed timeline control for the logo |
 | Order emails | Resend | Simple transactional email |

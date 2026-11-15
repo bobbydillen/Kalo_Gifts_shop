@@ -1,0 +1,7 @@
+# Netlify detects Next.js and sets up its runtime by itself; this only pins the Node version.
+[build]
+  command = "next build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"

@@ -16,7 +16,7 @@ export class ShiprocketError extends Error {}
 async function login(): Promise<string> {
   const email = process.env.SHIPROCKET_EMAIL;
   const password = process.env.SHIPROCKET_PASSWORD;
-  if (!email || !password) throw new ShiprocketError("Shiprocket is not set up: add SHIPROCKET_EMAIL and SHIPROCKET_PASSWORD in Vercel.");
+  if (!email || !password) throw new ShiprocketError("Shiprocket is not set up: add SHIPROCKET_EMAIL and SHIPROCKET_PASSWORD in the hosting settings (environment variables) and redeploy.");
 
   const res = await fetch(`${BASE}/auth/login`, {
     method: "POST",
@@ -26,7 +26,7 @@ async function login(): Promise<string> {
   });
   const body = (await res.json().catch(() => ({}))) as { token?: string; message?: string };
   if (!res.ok || !body.token) {
-    throw new ShiprocketError(`Shiprocket login failed: ${body.message ?? res.status}. Check the API user's email and password in Vercel.`);
+    throw new ShiprocketError(`Shiprocket login failed: ${body.message ?? res.status}. Check the API user's email and password in the hosting settings.`);
   }
   // tokens last several days; refresh daily to stay well inside that
   cached = { token: body.token, expires: Date.now() + 24 * 60 * 60 * 1000 };
