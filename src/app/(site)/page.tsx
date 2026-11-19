@@ -6,6 +6,8 @@ import { LovedOnes } from "@/components/home/LovedOnes";
 import { OrderByPill } from "@/components/home/OrderByPill";
 import { ClosingCta, Faq, Gifting, Story } from "@/components/home/Sections";
 import { WordTicker } from "@/components/home/WordTicker";
+import { WearShowcase } from "@/components/home/WearShowcase";
+import { isGarment } from "@/lib/garment";
 import { getProducts } from "@/lib/catalog-data";
 import type { Metadata } from "next";
 import { STATIC_PAGES } from "@/lib/seo";
@@ -32,10 +34,11 @@ export default async function Home() {
       <WordTicker />
       {settings.christmasHero && <ChristmasHero placement="section" />}
 
-      <Hampers index={1} />
-      <LovedOnes index={2} />
+      <WearShowcase index={1} items={products.filter(isGarment)} />
+      <Hampers index={2} />
+      <LovedOnes index={3} />
       <Collection
-        index={3}
+        index={4}
         label="The collection"
         items={products}
         title={
@@ -44,9 +47,9 @@ export default async function Home() {
           </>
         }
       />
-      <Story index={4} />
-      <Gifting index={5} />
-      <Faq index={6} />
+      <Story index={5} />
+      <Gifting index={6} />
+      <Faq index={7} />
       <ClosingCta />
 
       <OrderByPill />

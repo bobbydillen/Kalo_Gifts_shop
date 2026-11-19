@@ -29,6 +29,12 @@
   --animate-marquee: marquee var(--marquee-time, 40s) linear infinite;
   --animate-sway: sway 6s ease-in-out infinite;
 
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
   /* a hanging garment, moving a little in a breeze */
   @keyframes sway {
     0%,
@@ -392,4 +398,10 @@ html:has(dialog:modal) {
     opacity: 1;
     transform: none;
   }
+}
+
+/* a garment travelling between the rail and its product page */
+::view-transition-group(.morph) {
+  animation-duration: 560ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }

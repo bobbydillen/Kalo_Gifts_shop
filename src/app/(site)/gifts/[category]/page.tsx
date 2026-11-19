@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import { CataloguePage } from "@/components/product/CataloguePage";
 import { categories, categoryBySlug, createCatalog } from "@/lib/catalog";
 import { getProducts } from "@/lib/catalog-data";
+import { isGarment } from "@/lib/garment";
+import { LetterWindow, OutfitChange } from "@/components/wear/WearSections";
 import { categoryKey } from "@/lib/seo";
 import { seoFor } from "@/lib/seo-data";
 
@@ -30,9 +32,14 @@ export default function CategoryPage({ params }: PageProps<"/gifts/[category]">)
 async function CategoryPageContent({ params }: Pick<PageProps<"/gifts/[category]">, "params">) {
   const category = categoryBySlug((await params).category);
   if (!category) notFound();
-  const { productsIn } = createCatalog(await getProducts());
+  const products = await getProducts();
+  const { productsIn } = createCatalog(products);
+  // tees and hoodies hang on one rail together, this page's own pieces first
+  const wear = category.id === "tshirt" || category.id === "hoodie" ? products.filter(isGarment) : [];
+  const rail = [...wear.filter((p) => p.category === category.id), ...wear.filter((p) => p.category !== category.id)];
 
   return (
+    <>
     <CataloguePage
       kicker="The collection"
       title={category.label}
@@ -40,6 +47,14 @@ async function CategoryPageContent({ params }: Pick<PageProps<"/gifts/[category]
       items={productsIn(category.id)}
       active={category.slug}
       about={{ heading: category.seoTitle, text: category.about }}
+      rail={rail}
     />
+    {rail.length > 0 && (
+      <>
+        <OutfitChange />
+        <LetterWindow />
+      </>
+    )}
+    </>
   );
 }

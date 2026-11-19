@@ -17,6 +17,9 @@ import { JsonLd } from "@/components/site/JsonLd";
 import { productKey } from "@/lib/seo";
 import { seoFor } from "@/lib/seo-data";
 import { site } from "@/lib/site";
+import { garmentPhotos, isGarment } from "@/lib/garment";
+import { GarmentGallery } from "@/components/wear/GarmentGallery";
+import { StickyBuyBar } from "@/components/wear/StickyBuyBar";
 
 export async function generateStaticParams() {
   const products = await getProducts();
@@ -66,6 +69,7 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
 
   const tracked = Object.values(product.stock);
   const inStock = tracked.length === 0 || tracked.some((n) => n > 0);
+  const garment = isGarment(product);
 
   return (
     <>
@@ -88,6 +92,7 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
           },
         }}
       />
+      {garment && <StickyBuyBar name={product.name} price={formatPrice(fromPrice(product).price)} target="buy" />}
       <ViewContent slug={product.slug} name={product.name} category={category.label} price={fromPrice(product).price} />
       <div className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 lg:pb-28 lg:pt-12">
         <nav aria-label="Breadcrumb" className="text-sm text-faint">
@@ -113,16 +118,23 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
         <ProductColourProvider first={product.colours[0]?.name}>
         <div className="mt-8 grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
           {/* Picture. Stays in view on wide screens while the details scroll. */}
+          {garment ? (
+            // no rise-in here: the garment arrives from the rail instead
+            <div className="lg:sticky lg:top-28 lg:self-start">
+              <GarmentGallery slug={product.slug} name={product.name} tint={product.tint} tag={product.tag} photos={garmentPhotos(product)} />
+            </div>
+          ) : (
           <Rise className="lg:sticky lg:top-28 lg:self-start">
-            <ProductGallery
-              images={product.images}
-              imageColours={product.imageColours}
-              name={product.name}
-              tint={product.tint}
-              tag={product.tag}
-              fallback={<ProductArt category={product.category} className="w-[48%] text-gold-light" />}
-            />
-          </Rise>
+              <ProductGallery
+                images={product.images}
+                imageColours={product.imageColours}
+                name={product.name}
+                tint={product.tint}
+                tag={product.tag}
+                fallback={<ProductArt category={product.category} className="w-[48%] text-gold-light" />}
+              />
+            </Rise>
+          )}
 
           <div>
             <Rise delay={90}>
@@ -135,7 +147,7 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
               </p>
             </Rise>
 
-            <Rise delay={180} className="mt-9 border-t border-hair pt-8">
+            <Rise delay={180} className="mt-9 scroll-mt-28 border-t border-hair pt-8" id="buy">
               <DesignPicker current={product} others={designs} />
               <ProductBuy product={product} />
             </Rise>

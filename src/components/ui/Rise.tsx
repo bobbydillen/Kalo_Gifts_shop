@@ -8,13 +8,15 @@ export function Rise({
   children,
   delay = 0,
   className = "",
+  id,
 }: {
   children: ReactNode;
   delay?: number;
   className?: string;
+  id?: string;
 }) {
   return (
-    <div className={`rise ${className}`} style={{ "--rise-delay": `${delay}ms` } as CSSProperties}>
+    <div id={id} className={`rise ${className}`} style={{ "--rise-delay": `${delay}ms` } as CSSProperties}>
       {children}
     </div>
   );

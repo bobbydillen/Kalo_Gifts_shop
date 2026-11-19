@@ -3,8 +3,7 @@
 import Image from "next/image";
 import { useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
-import { garmentSides, inr, LETTER_PHOTO, OUTFITS, type WearPiece } from "@/lib/wear";
-import { GarmentFace } from "./Hanger";
+import { LETTER_PHOTO, OUTFITS } from "@/lib/wear";
 
 const MOTION = "(prefers-reduced-motion: no-preference)";
 
@@ -79,68 +78,6 @@ export function OutfitChange() {
   );
 }
 
-/** A loose grid of photos that drift at slightly different speeds. */
-export function Lookbook({ pieces, onOpen }: { pieces: WearPiece[]; onOpen: (i: number) => void }) {
-  const root = useRef<HTMLElement>(null);
-  const shots = [
-    { i: 0, src: pieces[0]?.back, span: "lg:col-span-5", ratio: "aspect-[4/5]", speed: -50 },
-    { i: 2, src: pieces[2]?.front, span: "lg:col-span-4 lg:col-start-7 lg:mt-32", ratio: "aspect-[4/5]", speed: 40 },
-    { i: 3, src: pieces[3]?.back, span: "lg:col-span-3 lg:col-start-2", ratio: "aspect-[5/6]", speed: -20 },
-    { i: 1, src: pieces[1]?.front, span: "lg:col-span-4 lg:col-start-6 lg:-mt-24", ratio: "aspect-[4/5]", speed: 60 },
-    { i: 4, src: pieces[4]?.back, span: "lg:col-span-2 lg:mt-24", ratio: "aspect-[4/5]", speed: -40 },
-  ].filter((s) => s.src);
-
-  useLayoutEffect(() => {
-    const mm = gsap.matchMedia();
-    mm.add(`${MOTION} and (min-width: 1024px)`, () => {
-      root.current?.querySelectorAll<HTMLElement>("[data-speed]").forEach((el) => {
-        gsap.fromTo(
-          el,
-          { y: -Number(el.dataset.speed) },
-          { y: Number(el.dataset.speed), ease: "none", scrollTrigger: { trigger: el, start: "top bottom", end: "bottom top", scrub: true } },
-        );
-      });
-    });
-    return () => mm.revert();
-  }, []);
-
-  return (
-    <section ref={root} aria-labelledby="lookbook-title" className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:py-36">
-      <div className="max-w-xl">
-        <p className="kicker">Lookbook</p>
-        <h2 id="lookbook-title" className="mt-4 text-[clamp(2.25rem,5vw,4rem)]">
-          Worn, not <em>preached</em>
-        </h2>
-      </div>
-      <div className="mt-14 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-12 lg:gap-8">
-        {shots.map((s, k) => (
-          <button
-            key={k}
-            type="button"
-            data-speed={s.speed}
-            onClick={() => onOpen(s.i)}
-            className={`group relative block self-start overflow-hidden rounded-xl text-left ${s.span} ${k === 0 ? "col-span-2" : ""}`}
-          >
-            <span className={`relative block ${s.ratio}`}>
-              <Image
-                src={s.src!}
-                alt={pieces[s.i].name}
-                fill
-                sizes="(min-width: 1024px) 40vw, 50vw"
-                className="object-cover transition-transform duration-700 ease-glide group-hover:scale-105"
-              />
-            </span>
-            <span className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-night/85 to-transparent p-4 pt-12 text-sm">
-              <span>{pieces[s.i].name}</span>
-              <span className="text-mist">{inr(pieces[s.i].price)}</span>
-            </span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 /** A full-screen photo seen through the letters KALO, which open up until the photo fills the screen. */
 export function LetterWindow() {
   const root = useRef<HTMLElement>(null);
@@ -184,93 +121,6 @@ export function LetterWindow() {
         <h2 className="mt-4 max-w-3xl text-[clamp(2.25rem,6vw,5rem)]">
           Made to be worn, written to be <em>read</em>
         </h2>
-      </div>
-    </section>
-  );
-}
-
-/** A sideways strip of photos that slides past as you scroll down. */
-export function PhotoStrip({ pieces, onOpen }: { pieces: WearPiece[]; onOpen: (i: number) => void }) {
-  const root = useRef<HTMLElement>(null);
-  const track = useRef<HTMLDivElement>(null);
-  const shots = pieces.flatMap((p, i) =>
-    [p.back, p.front].filter(Boolean).map((src) => ({ src: src!, i, side: src === p.back ? "Back" : "Front" })),
-  );
-
-  useLayoutEffect(() => {
-    const mm = gsap.matchMedia();
-    mm.add(MOTION, () => {
-      const el = track.current!;
-      const distance = () => Math.max(0, el.scrollWidth - window.innerWidth);
-      gsap.to(el, {
-        x: () => -distance(),
-        ease: "none",
-        scrollTrigger: { trigger: root.current, start: "top top", end: () => `+=${distance()}`, pin: true, scrub: 0.5, invalidateOnRefresh: true },
-      });
-    });
-    return () => mm.revert();
-  }, []);
-
-  return (
-    <section ref={root} aria-label="Every piece" className="relative flex h-[100svh] flex-col justify-center overflow-hidden bg-pine py-20 motion-reduce:h-auto">
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
-        <p className="kicker">The full run</p>
-      </div>
-      <div
-        ref={track}
-        className="mt-8 flex w-max gap-4 px-4 will-change-transform sm:gap-6 sm:px-6 lg:px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))] motion-reduce:w-auto motion-reduce:overflow-x-auto"
-      >
-        {shots.map((s) => (
-          <button key={s.src} type="button" onClick={() => onOpen(s.i)} className="group w-[68vw] shrink-0 text-left sm:w-[40vw] lg:w-[24rem]">
-            <span className="relative block aspect-[4/5] overflow-hidden rounded-xl">
-              <Image
-                src={s.src}
-                alt={`${pieces[s.i].name}, ${s.side.toLowerCase()}`}
-                fill
-                sizes="(min-width: 1024px) 384px, 68vw"
-                className="object-cover transition-transform duration-700 ease-glide group-hover:scale-105"
-              />
-            </span>
-            <span className="mt-3 flex justify-between text-sm">
-              <span>{pieces[s.i].name}</span>
-              <span className="text-faint">{s.side}</span>
-            </span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/** The last rail: every piece hanging and gently swaying, one tap from its view. */
-export function RailFooter({ pieces, onOpen }: { pieces: WearPiece[]; onOpen: (i: number) => void }) {
-  return (
-    <section aria-labelledby="rail-title" className="relative overflow-hidden py-24 lg:py-32">
-      <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
-        <h2 id="rail-title" className="text-[clamp(2.25rem,5vw,4rem)]">
-          Back on the <em>rail</em>
-        </h2>
-        <p className="mx-auto mt-4 max-w-md text-mist">Pick one off the rail and turn it around.</p>
-      </div>
-      <div className="relative mt-16">
-        <div aria-hidden="true" className="absolute inset-x-0 top-[6px] h-[3px] bg-gradient-to-r from-transparent via-gold to-transparent" />
-        <div className="flex gap-4 overflow-x-auto px-4 pb-4 sm:justify-center sm:gap-6 sm:px-6 [scrollbar-width:none]">
-          {pieces.map((p, i) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => onOpen(i)}
-              className="group w-[40vw] shrink-0 motion-safe:animate-sway sm:w-44 lg:w-52"
-              style={{ transformOrigin: "50% 0%", animationDelay: `${-i * 1.3}s` }}
-            >
-              <span className="relative mt-[6%] block aspect-[1000/1150] transition-transform duration-500 ease-glide group-hover:-translate-y-2">
-                <GarmentFace src={garmentSides(p)[0]?.src ?? ""} alt={p.name} sizes="208px" />
-              </span>
-              <span className="mt-3 block text-sm">{p.name}</span>
-              <span className="block text-xs text-faint">{inr(p.price)}</span>
-            </button>
-          ))}
-        </div>
       </div>
     </section>
   );

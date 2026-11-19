@@ -5,6 +5,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { Rise } from "@/components/ui/Rise";
 import { categories, createCatalog, type Product } from "@/lib/catalog";
 import { getProducts } from "@/lib/catalog-data";
+import { DropRail } from "@/components/wear/DropRail";
 
 /**
  * Shared layout for /gifts and /gifts/<category>: a heading, category chips
@@ -17,6 +18,7 @@ export async function CataloguePage({
   items,
   active,
   about,
+  rail,
 }: {
   kicker: string;
   title: ReactNode;
@@ -25,6 +27,8 @@ export async function CataloguePage({
   active: string | null; // category slug, or null for "all"
   /** Optional paragraph under the products. */
   about?: { heading: string; text: string };
+  /** Wear shown hanging on the rail (with a switch to the plain grid). */
+  rail?: Product[];
 }) {
   const { productsIn } = createCatalog(await getProducts());
   const chips = [
@@ -60,6 +64,24 @@ export async function CataloguePage({
         </nav>
       </Rise>
 
+      {rail && rail.length > 0 ? (
+        <div className="mt-12">
+          <DropRail
+            products={rail}
+            grid={
+      <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 lg:grid-cols-4">
+        {items.map((product, i) => (
+          <Reveal key={product.slug} delay={(i % 4) * 80}>
+            <ProductCard product={product} />
+          </Reveal>
+        ))}
+      </div>
+
+            }
+          />
+        </div>
+      ) : (
+        <>
       <p className="mt-10 text-sm text-faint">
         {items.length} {items.length === 1 ? "piece" : "pieces"}
       </p>
@@ -83,6 +105,9 @@ export async function CataloguePage({
           </Reveal>
         ))}
       </div>
+
+        </>
+      )}
 
       {about && (
         <section className="mt-20 max-w-3xl border-t border-hair pt-10">

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useBag } from "@/components/bag/BagProvider";
 import { ProductArt } from "@/components/product/ProductArt";
 import { formatPrice, fromPrice, type Product } from "@/lib/catalog";
+import { isCutout } from "@/lib/garment";
 
 /**
  * Product tile for grids. The whole tile opens the product page.
@@ -36,7 +37,9 @@ export function ProductCard({ product }: { product: Product }) {
             src={product.images[0]}
             alt=""
             loading="lazy"
-            className="size-full object-cover transition-transform duration-1000 ease-glide group-hover:scale-105"
+            className={`size-full transition-transform duration-1000 ease-glide group-hover:scale-105 ${
+              isCutout(product.images[0]) ? "object-contain p-[9%] drop-shadow-[0_18px_22px_rgba(0,0,0,0.55)]" : "object-cover"
+            }`}
           />
         ) : (
           <ProductArt
