@@ -27,6 +27,18 @@
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   --animate-marquee: marquee var(--marquee-time, 40s) linear infinite;
+  --animate-sway: sway 6s ease-in-out infinite;
+
+  /* a hanging garment, moving a little in a breeze */
+  @keyframes sway {
+    0%,
+    100% {
+      transform: rotate(-1.6deg);
+    }
+    50% {
+      transform: rotate(1.6deg);
+    }
+  }
 
   @keyframes marquee {
     to {
