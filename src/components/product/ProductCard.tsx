@@ -5,6 +5,7 @@ import { useBag } from "@/components/bag/BagProvider";
 import { ProductArt } from "@/components/product/ProductArt";
 import { formatPrice, fromPrice, type Product } from "@/lib/catalog";
 import { isCutout } from "@/lib/garment";
+import { studioBackground } from "@/lib/studio";
 
 /**
  * Product tile for grids. The whole tile opens the product page.
@@ -16,14 +17,14 @@ export function ProductCard({ product }: { product: Product }) {
   const href = product.buildYourOwn ? "/hampers/build" : `/product/${product.slug}`;
   const hasOptions = product.sizes.length > 0 || product.colours.length > 0;
   const round =
-    "absolute bottom-3 right-3 z-10 grid size-11 place-items-center rounded-full bg-cream text-2xl font-light leading-none text-night shadow-lg transition-[transform,background-color] duration-500 ease-bounce hover:scale-110 hover:bg-gold-light active:scale-90 sm:bottom-4 sm:right-4 sm:size-12";
+    "absolute bottom-3 right-3 z-10 grid size-11 place-items-center rounded-full bg-night text-2xl font-light leading-none text-cream shadow-lg transition-[transform,background-color] duration-500 ease-bounce hover:scale-110 hover:bg-pine-3 active:scale-90 sm:bottom-4 sm:right-4 sm:size-12";
 
   return (
     <article className="group relative">
       <div
         className="relative grid aspect-[4/5] place-items-center overflow-hidden rounded-md border border-hair transition-[border-radius,border-color] duration-700 ease-glide group-hover:rounded-[22px] group-hover:border-gold/40"
         style={{
-          background: `radial-gradient(circle at 50% 42%, color-mix(in srgb, ${product.tint} 60%, transparent), var(--color-pine-2) 72%)`,
+          background: studioBackground(product.colours[0]?.hex ?? product.tint),
         }}
       >
         {product.tag && (
@@ -38,7 +39,7 @@ export function ProductCard({ product }: { product: Product }) {
             alt=""
             loading="lazy"
             className={`size-full transition-transform duration-1000 ease-glide group-hover:scale-105 ${
-              isCutout(product.images[0]) ? "object-contain p-[9%] drop-shadow-[0_18px_22px_rgba(0,0,0,0.55)]" : "object-cover"
+              isCutout(product.images[0]) ? "object-contain p-[9%] drop-shadow-[0_18px_20px_rgba(60,45,25,0.35)]" : "object-cover"
             }`}
           />
         ) : (

@@ -35,6 +35,39 @@
     }
   }
 
+  /* a frame swinging gently on its nail as it settles */
+  @keyframes frame-settle {
+    0% {
+      transform: rotate(3deg);
+    }
+    30% {
+      transform: rotate(-2deg);
+    }
+    55% {
+      transform: rotate(1deg);
+    }
+    80% {
+      transform: rotate(-0.4deg);
+    }
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+
+  /* the water surface in the bottle-fill picture */
+  @keyframes bottle-wave {
+    50% {
+      transform: translateX(-15px);
+    }
+  }
+
+  /* snow drifting down past the Christmas bottle shelf */
+  @keyframes bottle-snow {
+    to {
+      transform: translate3d(24px, 460px, 0);
+    }
+  }
+
   /* a hanging garment, moving a little in a breeze */
   @keyframes sway {
     0%,

@@ -6,6 +6,7 @@ import { deleteProduct, saveProduct, saveProductSeo } from "@/app/admin/products
 import { ProductPhotos } from "@/components/admin/ProductPhotos";
 import { slugify, validateProduct, type AdminImage, type ProductInput } from "@/lib/admin-products";
 import { categories, FRAME_SIZES, STANDARD_SIZES, type Category } from "@/lib/catalog";
+import { BOTTLE_STYLES, bottleStyle } from "@/lib/bottles";
 
 const field =
   "mt-2 block w-full rounded-xl border border-hair-2 bg-night/60 px-4 py-3 text-cream placeholder:text-faint focus:border-gold focus:outline-none";
@@ -244,37 +245,104 @@ export function ProductForm({
           </label>
         </div>
 
-        <fieldset className="rounded-2xl border border-hair-2 p-5">
-          <legend className="px-2 text-sm text-mist">
-            Other designs <span className="text-faint">(optional)</span>
-          </legend>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block text-sm text-mist">
-              Design group
-              <input
-                list="design-groups"
-                value={designGroup}
-                maxLength={60}
-                onChange={(e) => setDesignGroup(e.target.value)}
-                placeholder="for example mood-mug"
-                className={field}
-              />
-              <datalist id="design-groups">
-                {[...new Set(others.map((o) => o.design_group).filter(Boolean))].map((g) => (
-                  <option key={g} value={g} />
-                ))}
-              </datalist>
-            </label>
-            <label className="block text-sm text-mist">
-              Name for this design
-              <input value={designLabel} maxLength={40} onChange={(e) => setDesignLabel(e.target.value)} placeholder="for example Cross" className={field} />
-            </label>
-          </div>
-          <p className="mt-3 text-xs text-faint">
-            Give every print of the same item the same design group. Customers then see the other designs on this product page and can switch
-            between them. Leave empty for a product with only one design.
-          </p>
-        </fieldset>
+        {category === "frame" && !customPhoto ? (
+          <fieldset className="rounded-2xl border border-hair-2 p-5">
+            <legend className="px-2 text-sm text-mist">Gallery wall</legend>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block text-sm text-mist">
+                Print size
+                <select value={designGroup} onChange={(e) => setDesignGroup(e.target.value)} className={field}>
+                  <option value="">Choose…</option>
+                  <option value="frame-4x6">4 × 6 inch</option>
+                  <option value="frame-a4">A4</option>
+                </select>
+              </label>
+              <label className="block text-sm text-mist">
+                Design name
+                <input value={designLabel} maxLength={100} onChange={(e) => setDesignLabel(e.target.value)} placeholder="for example Trust in the Lord" className={field} />
+              </label>
+            </div>
+            <p className="mt-3 text-xs text-faint">
+              The print size sets how wide the frame looks on the wall (a small print gets a chunkier frame). Prints of the same size are
+              shown to each other as “Other designs”. Add the frame colours below as Pink, White and Blue, and the print artwork under
+              Photos.
+            </p>
+          </fieldset>
+        ) : category === "bottle" ? (
+          <fieldset className="rounded-2xl border border-hair-2 p-5">
+            <legend className="px-2 text-sm text-mist">Bottle Bar</legend>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block text-sm text-mist">
+                Bottle style
+                <select value={designGroup} onChange={(e) => setDesignGroup(e.target.value)} className={field}>
+                  <option value="">Not on the Bottle Bar</option>
+                  {BOTTLE_STYLES.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block text-sm text-mist">
+                Design name
+                <input
+                  value={designLabel}
+                  maxLength={100}
+                  onChange={(e) => setDesignLabel(e.target.value)}
+                  placeholder="for example He Left the 99 to Find Me"
+                  className={field}
+                />
+              </label>
+            </div>
+            {bottleStyle(designGroup) && designLabel.trim() && name.trim() !== `${designLabel.trim()} · ${bottleStyle(designGroup)!.name}` && (
+              <button
+                type="button"
+                onClick={() => setName(`${designLabel.trim()} · ${bottleStyle(designGroup)!.name}`)}
+                className="mt-3 text-sm text-gold-light underline-offset-4 hover:underline"
+              >
+                Use “{designLabel.trim()} · {bottleStyle(designGroup)!.name}” as the product name
+              </button>
+            )}
+            <p className="mt-3 text-xs text-faint">
+              The bottle stands on its style&apos;s shelf (or on the Christmas shelf when “Christmas edit” is ticked). Give the same design
+              name to the same design on other bottle styles: the product page then shows “Also comes on” those bottles, and “By verse”
+              lines them up together. Other designs of the same style appear under “More designs on this bottle”. Each colour of the
+              bottle is a colour below, with its own cut-out and photo.
+            </p>
+          </fieldset>
+        ) : (
+          <fieldset className="rounded-2xl border border-hair-2 p-5">
+            <legend className="px-2 text-sm text-mist">
+              Other designs <span className="text-faint">(optional)</span>
+            </legend>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block text-sm text-mist">
+                Design group
+                <input
+                  list="design-groups"
+                  value={designGroup}
+                  maxLength={60}
+                  onChange={(e) => setDesignGroup(e.target.value)}
+                  placeholder="for example mood-mug"
+                  className={field}
+                />
+                <datalist id="design-groups">
+                  {[...new Set(others.map((o) => o.design_group).filter(Boolean))].map((g) => (
+                    <option key={g} value={g} />
+                  ))}
+                </datalist>
+              </label>
+              <label className="block text-sm text-mist">
+                Name for this design
+                <input value={designLabel} maxLength={100} onChange={(e) => setDesignLabel(e.target.value)} placeholder="for example Cross" className={field} />
+              </label>
+            </div>
+            <p className="mt-3 text-xs text-faint">
+              Give every print of the same item the same design group. Customers then see the other designs on this product page and can switch
+              between them. Leave empty for a product with only one design.
+            </p>
+          </fieldset>
+        )}
 
         <fieldset className="rounded-2xl border border-hair-2 p-5">
           <legend className="px-2 text-sm text-mist">
@@ -566,7 +634,7 @@ export function ProductForm({
 
       <Section title={<>Pho<em>tos</em></>}>
         {initial ? (
-          <ProductPhotos productId={initial.id} images={images} colours={colours.map((c) => c.name.trim()).filter(Boolean)} />
+          <ProductPhotos productId={initial.id} images={images} category={category} colours={colours.map((c) => c.name.trim()).filter(Boolean)} />
         ) : (
           <p className="text-mist">Save the product first, then you can add photos.</p>
         )}

@@ -5,6 +5,7 @@ import { CataloguePage } from "@/components/product/CataloguePage";
 import { categories, categoryBySlug, createCatalog } from "@/lib/catalog";
 import { getProducts } from "@/lib/catalog-data";
 import { isGarment } from "@/lib/garment";
+import { isBottle } from "@/lib/bottles";
 import { LetterWindow, OutfitChange } from "@/components/wear/WearSections";
 import { categoryKey } from "@/lib/seo";
 import { seoFor } from "@/lib/seo-data";
@@ -48,6 +49,8 @@ async function CategoryPageContent({ params }: Pick<PageProps<"/gifts/[category]
       active={category.slug}
       about={{ heading: category.seoTitle, text: category.about }}
       rail={rail}
+      bottles={category.id === "bottle" ? products.filter(isBottle) : undefined}
+      frames={category.id === "frame"}
     />
     {rail.length > 0 && (
       <>

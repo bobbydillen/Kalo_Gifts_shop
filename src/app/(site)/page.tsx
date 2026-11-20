@@ -7,6 +7,9 @@ import { OrderByPill } from "@/components/home/OrderByPill";
 import { ClosingCta, Faq, Gifting, Story } from "@/components/home/Sections";
 import { WordTicker } from "@/components/home/WordTicker";
 import { WearShowcase } from "@/components/home/WearShowcase";
+import { BottleShowcase, FrameShowcase } from "@/components/home/Showcases";
+import { isBottle } from "@/lib/bottles";
+import { isVerseFrame } from "@/lib/frames";
 import { isGarment } from "@/lib/garment";
 import { getProducts } from "@/lib/catalog-data";
 import type { Metadata } from "next";
@@ -35,10 +38,12 @@ export default async function Home() {
       {settings.christmasHero && <ChristmasHero placement="section" />}
 
       <WearShowcase index={1} items={products.filter(isGarment)} />
-      <Hampers index={2} />
-      <LovedOnes index={3} />
+      <BottleShowcase index={2} items={products.filter(isBottle)} />
+      <FrameShowcase index={3} items={products.filter(isVerseFrame)} />
+      <Hampers index={4} />
+      <LovedOnes index={5} />
       <Collection
-        index={4}
+        index={6}
         label="The collection"
         items={products}
         title={
@@ -47,9 +52,9 @@ export default async function Home() {
           </>
         }
       />
-      <Story index={5} />
-      <Gifting index={6} />
-      <Faq index={7} />
+      <Story index={7} />
+      <Gifting index={8} />
+      <Faq index={9} />
       <ClosingCta />
 
       <OrderByPill />

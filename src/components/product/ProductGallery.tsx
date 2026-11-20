@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { useProductColour } from "@/components/product/ProductColour";
 import { photosFor } from "@/lib/catalog";
+import { studioBackground } from "@/lib/studio";
 
 /**
  * The product pictures: one large photo with a row of small ones underneath to switch between.
@@ -12,14 +13,13 @@ export function ProductGallery({
   images: allImages,
   imageColours,
   name,
-  tint,
   tag,
   fallback,
 }: {
   images: string[];
   imageColours: string[];
   name: string;
-  tint: string;
+  tint?: string; // no longer used: the picture sits on the shared studio backdrop
   tag?: string;
   fallback: ReactNode;
 }) {
@@ -37,7 +37,7 @@ export function ProductGallery({
       <div
         className="relative grid aspect-[4/5] place-items-center overflow-hidden rounded-[28px] border border-hair"
         style={{
-          background: `radial-gradient(circle at 50% 42%, color-mix(in srgb, ${tint} 65%, transparent), var(--color-pine-2) 72%)`,
+          background: studioBackground(),
         }}
       >
         {tag && (

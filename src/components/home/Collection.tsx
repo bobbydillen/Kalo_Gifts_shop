@@ -4,10 +4,21 @@ import { useState, type ReactNode } from "react";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
-import { categoryLabels, type Category, type Product } from "@/lib/catalog";
+import { categories, categoryLabels, type Category, type Product } from "@/lib/catalog";
 
 type Filter = "all" | Category;
-const order: Category[] = ["tshirt", "hoodie", "cap", "tote", "bottle", "keychain", "hamper"];
+const order: Category[] = ["tshirt", "hoodie", "bottle", "frame", "hamper", "cap", "tote", "keychain"];
+const MAX = 8; // the home page shows a short mix; "View all gifts" has the rest
+
+/** Products from each category in turn (one of each, then the next of each…), up to MAX. */
+function mix(items: Product[]): Product[] {
+  const groups = order.map((c) => items.filter((p) => p.category === c && !p.buildYourOwn));
+  const out: Product[] = [];
+  for (let i = 0; out.length < MAX && groups.some((g) => g[i]); i++) {
+    for (const g of groups) if (g[i] && out.length < MAX) out.push(g[i]);
+  }
+  return out;
+}
 
 /** Product grid with category chips. Chips are offered only for categories present. */
 export function Collection({
@@ -23,7 +34,7 @@ export function Collection({
 }) {
   const [filter, setFilter] = useState<Filter>("all");
   const filters: Filter[] = ["all", ...order.filter((c) => items.some((p) => p.category === c))];
-  const shown = items.filter((p) => filter === "all" || p.category === filter);
+  const shown = filter === "all" ? mix(items) : items.filter((p) => p.category === filter).slice(0, MAX);
 
   return (
     <section id="gifts" className="border-t border-hair bg-pine/60">
@@ -60,8 +71,8 @@ export function Collection({
         </div>
 
         <Reveal className="mt-14 text-center">
-          <Button href="/gifts" variant="outline" arrow>
-            View all gifts
+          <Button href={filter === "all" ? "/gifts" : `/gifts/${categories.find((c) => c.id === filter)?.slug ?? ""}`} variant="outline" arrow>
+            {filter === "all" ? "View all gifts" : `View all ${categoryLabels[filter].toLowerCase()}`}
           </Button>
         </Reveal>
       </div>

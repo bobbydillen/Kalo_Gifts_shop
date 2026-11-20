@@ -90,7 +90,7 @@ export function validateProduct(
 
   // a group is a short lowercase key such as "mood-mug"; products with the same key are linked
   const design_group = text(raw.design_group, 60).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-  const design_label = text(raw.design_label, 40);
+  const design_label = text(raw.design_label, 100);
 
   const sizes = list(raw.sizes).filter((s): s is string => STANDARD_SIZES.includes(s as string) || frameSizeIds.includes(s as string));
   if (new Set(sizes).size !== sizes.length) return fail("A size is listed twice.");

@@ -18,6 +18,14 @@ import { productKey } from "@/lib/seo";
 import { seoFor } from "@/lib/seo-data";
 import { site } from "@/lib/site";
 import { garmentPhotos, isGarment } from "@/lib/garment";
+import { bottleStyle, isBottle } from "@/lib/bottles";
+import { BottleGallery } from "@/components/bottles/BottleGallery";
+import { FrameGallery } from "@/components/frames/FrameGallery";
+import { isVerseFrame } from "@/lib/frames";
+import { BottleFacts } from "@/components/bottles/BottleFacts";
+import { BottleMore } from "@/components/bottles/BottleMore";
+import { chatLink } from "@/lib/contact";
+import { getSettings } from "@/lib/settings-data";
 import { GarmentGallery } from "@/components/wear/GarmentGallery";
 import { StickyBuyBar } from "@/components/wear/StickyBuyBar";
 
@@ -70,6 +78,9 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
   const tracked = Object.values(product.stock);
   const inStock = tracked.length === 0 || tracked.some((n) => n > 0);
   const garment = isGarment(product);
+  const bottle = isBottle(product);
+  const style = bottle ? bottleStyle(product.designGroup) : undefined;
+  const otherColour = bottle ? chatLink(await getSettings(), `Hi KALO Gifts, could I get the "${product.name}" design on a different bottle colour or style?`) : null;
 
   return (
     <>
@@ -92,7 +103,7 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
           },
         }}
       />
-      {garment && <StickyBuyBar name={product.name} price={formatPrice(fromPrice(product).price)} target="buy" />}
+      {(garment || bottle) && <StickyBuyBar name={product.name} price={formatPrice(fromPrice(product).price)} target="buy" />}
       <ViewContent slug={product.slug} name={product.name} category={category.label} price={fromPrice(product).price} />
       <div className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 lg:pb-28 lg:pt-12">
         <nav aria-label="Breadcrumb" className="text-sm text-faint">
@@ -116,12 +127,20 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
         </nav>
 
         <ProductColourProvider first={product.colours[0]?.name}>
-        <div className="mt-8 grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
+        <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-16">
           {/* Picture. Stays in view on wide screens while the details scroll. */}
           {garment ? (
             // no rise-in here: the garment arrives from the rail instead
             <div className="lg:sticky lg:top-28 lg:self-start">
               <GarmentGallery slug={product.slug} name={product.name} tint={product.tint} tag={product.tag} photos={garmentPhotos(product)} />
+            </div>
+          ) : bottle ? (
+            <div className="lg:sticky lg:top-28 lg:self-start">
+              <BottleGallery product={product} />
+            </div>
+          ) : isVerseFrame(product) ? (
+            <div className="lg:sticky lg:top-28 lg:self-start">
+              <FrameGallery product={product} />
             </div>
           ) : (
           <Rise className="lg:sticky lg:top-28 lg:self-start">
@@ -148,12 +167,23 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
             </Rise>
 
             <Rise delay={180} className="mt-9 scroll-mt-28 border-t border-hair pt-8" id="buy">
-              <DesignPicker current={product} others={designs} />
+              {!bottle && <DesignPicker current={product} others={designs} />}
               <ProductBuy product={product} />
+              {otherColour && (
+                <a href={otherColour} target="_blank" rel="noopener noreferrer" className="mt-4 inline-block text-sm text-gold-light underline-offset-4 hover:underline">
+                  Want this design on another colour or bottle? Ask us on WhatsApp
+                </a>
+              )}
+              {bottle && (
+                <div className="mt-8">
+                  <BottleMore product={product} all={catalog.products} />
+                </div>
+              )}
             </Rise>
 
             <Rise delay={270} className="mt-8 space-y-8">
               <p className="text-mist">{product.description}</p>
+              {style && <BottleFacts style={style} />}
 
               {inside.length > 0 && (
                 <section aria-labelledby="inside-title">

@@ -11,7 +11,7 @@ import { GarmentSide } from "./Garment";
  * dragging or with the Front / Back buttons, then the photos of it being worn. The garment shares
  * its name with the one on the rail, so it travels here when a piece is opened from the rail.
  */
-export function GarmentGallery({ slug, name, tint, tag, photos }: { slug: string; name: string; tint: string; tag?: string; photos: GarmentPhotos }) {
+export function GarmentGallery({ slug, name, tag, photos }: { slug: string; name: string; tint?: string; tag?: string; photos: GarmentPhotos }) {
   const { sides, worn } = photos;
   const canTurn = sides.length === 2;
   const [angle, setAngle] = useState(0);
@@ -51,21 +51,18 @@ export function GarmentGallery({ slug, name, tint, tag, photos }: { slug: string
 
   return (
     <div>
-      <div
-        className="relative aspect-[4/5] overflow-hidden rounded-[28px] border border-hair"
-        style={{ background: `radial-gradient(circle at 50% 45%, color-mix(in srgb, ${tint} 60%, transparent), var(--color-pine-2) 72%)` }}
-      >
+      <div className="relative aspect-[4/5]">
+        {/* a soft warm light behind the garment, fading into the page (no box) */}
+        <div aria-hidden="true" className="pointer-events-none absolute -inset-[8%] bg-[radial-gradient(ellipse_50%_46%_at_50%_48%,rgba(255,236,200,0.16),rgba(255,236,200,0.05)_45%,transparent_70%)]" />
         {tag && (
-          <span className="absolute left-5 top-5 z-20 rounded-full border border-hair-2 bg-night/50 px-3 py-1.5 text-[0.625rem] uppercase tracking-[0.2em] text-gold-light backdrop-blur">
+          <span className="absolute left-0 top-2 z-20 rounded-full border border-hair-2 bg-night/50 px-3 py-1.5 text-[0.625rem] uppercase tracking-[0.2em] text-gold-light backdrop-blur">
             {tag}
           </span>
         )}
-        {/* a short brass rail */}
-        <div aria-hidden="true" className="absolute inset-x-[12%] top-[8%] h-[6px] rounded-full bg-[linear-gradient(180deg,#fff1c9,#e2c27e_35%,#a8823f_75%,#6e5328)] shadow-[0_6px_14px_-4px_rgba(0,0,0,0.8)]" />
 
         <div
           ref={swing}
-          className={`absolute inset-x-[13%] top-[8%] transition-opacity duration-500 ${photo ? "opacity-0" : "opacity-100"}`}
+          className={`absolute inset-x-[4%] top-[5%] transition-[opacity,transform] duration-500 ${photo ? "scale-95 opacity-0" : "opacity-100"}`}
           style={{ transformOrigin: "50% 0%", perspective: "1400px" }}
         >
           <ViewTransition name={garmentTransitionName(slug)} share="morph" default="none">
@@ -90,7 +87,7 @@ export function GarmentGallery({ slug, name, tint, tag, photos }: { slug: string
 
         {photo && (
           // eslint-disable-next-line @next/next/no-img-element -- already sized photos
-          <img src={photo} alt={`${name}, worn`} className="absolute inset-0 size-full animate-[fade-in_0.5s_ease] object-cover" />
+          <img src={photo} alt={`${name}, worn`} className="absolute inset-0 size-full animate-[fade-in_0.5s_ease] rounded-[28px] object-cover" />
         )}
 
         {canTurn && !photo && (
@@ -107,7 +104,7 @@ export function GarmentGallery({ slug, name, tint, tag, photos }: { slug: string
               type="button"
               onClick={() => show(k)}
               aria-pressed={on}
-              className="group relative size-20 shrink-0 overflow-hidden rounded-xl border border-hair bg-pine-2 transition-colors aria-pressed:border-gold"
+              className="group relative size-20 shrink-0 overflow-hidden rounded-xl border border-hair bg-[#efe7da] transition-colors aria-pressed:border-gold"
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- small cut-out */}
               <img src={s.src} alt="" className="size-full object-contain p-1.5" />

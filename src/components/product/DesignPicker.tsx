@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ProductArt } from "@/components/product/ProductArt";
 import { formatPrice, type Product } from "@/lib/catalog";
+import { studioBackground } from "@/lib/studio";
+import { isCutout } from "@/lib/photo-kind";
 
 const labelOf = (p: Product) => p.designLabel || p.name;
 
@@ -32,11 +34,11 @@ export function DesignPicker({ current, others }: { current: Product; others: Pr
               >
                 <span
                   className="grid size-20 place-items-center overflow-hidden rounded-xl"
-                  style={{ background: `color-mix(in srgb, ${p.tint} 65%, var(--color-pine-2))` }}
+                  style={{ background: studioBackground(p.colours[0]?.hex ?? p.tint) }}
                 >
                   {p.images[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element -- photo sizes are not known until real photos arrive
-                    <img src={p.images[0]} alt="" className="size-full object-cover" />
+                    <img src={p.images[0]} alt="" className={`size-full ${isCutout(p.images[0]) ? "object-contain p-1" : "object-cover"}`} />
                   ) : (
                     <ProductArt category={p.category} className="w-10 text-gold-light" />
                   )}

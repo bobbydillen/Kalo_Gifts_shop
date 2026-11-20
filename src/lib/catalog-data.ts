@@ -55,7 +55,7 @@ export async function getProducts(): Promise<Product[]> {
 
   const photos = `${url}/storage/v1/object/public/product-images/`;
 
-  return data.map((row) => ({
+  const products: Product[] = data.map((row) => ({
     slug: row.slug,
     name: row.name,
     category: row.category,
@@ -88,4 +88,6 @@ export async function getProducts(): Promise<Product[]> {
     sizePrices: row.size_prices ?? {},
     designLabel: row.design_label,
   }));
+
+  return products;
 }

@@ -22,6 +22,7 @@ export default async function GiftsPage() {
       intro="Everyday pieces with something to say, for the people who come to mind."
       items={await getProducts()}
       active={null}
+      showrooms
     />
   );
 }
