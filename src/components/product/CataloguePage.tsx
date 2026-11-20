@@ -8,6 +8,7 @@ import { getProducts } from "@/lib/catalog-data";
 import { DropRail } from "@/components/wear/DropRail";
 import { BottleBar } from "@/components/bottles/BottleBar";
 import { FrameBar } from "@/components/frames/FrameBar";
+import { GiftsView } from "@/components/product/GiftsView";
 import { isVerseFrame } from "@/lib/frames";
 import { isGarment } from "@/lib/garment";
 import { isBottle } from "@/lib/bottles";
@@ -79,7 +80,7 @@ export async function CataloguePage({
       </Rise>
 
       {showrooms ? (
-        <Showrooms items={items} />
+        <GiftsView all={cardGrid(items)} showroom={<Showrooms items={items} />} />
       ) : frames && items.some(isVerseFrame) ? (
         <div className="mt-12">
           <FrameBar
@@ -191,7 +192,7 @@ const cardGrid = (list: Product[]) => (
   </div>
 );
 
-/** The All gifts page: each kind of product in its own showroom, one after another. */
+/** The All gifts showroom: each kind of product in its own showroom, one after another. */
 function Showrooms({ items }: { items: Product[] }) {
   const wear = items.filter(isGarment);
   const bottles = items.filter(isBottle);
