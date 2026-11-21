@@ -54,6 +54,47 @@
     }
   }
 
+  /* a gift dropping into the hamper box and settling in the tissue */
+  @keyframes box-drop {
+    0% {
+      transform: translateY(-70%) rotate(var(--tilt, 0deg)) scale(0.9);
+      opacity: 0;
+    }
+    35% {
+      opacity: 1;
+    }
+    70% {
+      transform: translateY(4%) rotate(var(--tilt, 0deg)) scale(1);
+    }
+    100% {
+      transform: translateY(0) rotate(var(--tilt, 0deg)) scale(1);
+      opacity: 1;
+    }
+  }
+
+  /* the box giving a little bump as a gift lands in it */
+  @keyframes box-bump {
+    40% {
+      transform: scale(1.035, 0.97);
+    }
+    70% {
+      transform: scale(0.99, 1.01);
+    }
+  }
+
+  /* the ribbon bow popping on once the lid is down */
+  @keyframes bow-pop {
+    0% {
+      transform: translate(-50%, 30%) scale(0);
+    }
+    70% {
+      transform: translate(-50%, -8%) scale(1.15);
+    }
+    100% {
+      transform: translate(-50%, 0) scale(1);
+    }
+  }
+
   /* the water surface in the bottle-fill picture */
   @keyframes bottle-wave {
     50% {
@@ -92,8 +133,6 @@
     color-scheme: dark;
     scroll-behavior: smooth;
     scroll-padding-top: 6rem;
-    /* phones (iOS Safari above all) can pan sideways past wide decorations unless the page itself clips them */
-    overflow-x: clip;
   }
 
   body {
