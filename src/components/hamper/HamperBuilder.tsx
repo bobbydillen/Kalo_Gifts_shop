@@ -123,7 +123,7 @@ export function HamperBuilder() {
         <span className="text-gold-light">{formatPrice(price.total)} ↓</span>
       </a>
 
-      <div className="mt-10 grid gap-10 lg:grid-cols-[1.5fr_1fr] lg:gap-14">
+      <div className="mt-10 grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-14">
         <section aria-labelledby="pick-title">
           <h2 id="pick-title" className="text-3xl">
             Pick your <em>gifts</em>

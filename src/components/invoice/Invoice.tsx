@@ -33,6 +33,7 @@ function paymentLine(order: InvoiceOrder) {
   if (order.payment_status === "refunded") return "Refunded.";
   if (order.payment_method === "cod") return `Cash on delivery. Please pay ${formatPrice(order.total)} to the courier when your order arrives.`;
   if (order.payment_method === "test") return "Test order. No payment was taken.";
+  if (order.payment_method === "upi") return `UPI payment of ${formatPrice(order.total)} being checked.`;
   return "Payment pending.";
 }
 

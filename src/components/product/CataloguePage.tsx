@@ -52,6 +52,8 @@ export async function CataloguePage({
       .filter((c) => productsIn(c.id).length > 0)
       .map((c) => ({ label: c.label, href: `/gifts/${c.slug}`, slug: c.slug as string | null })),
   ];
+  // categories with nothing on sale yet show as "coming soon", greyed out and not clickable
+  const soon = categories.filter((c) => productsIn(c.id).length === 0);
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-24 pt-14 sm:px-6 lg:pb-32 lg:pt-20">
@@ -75,6 +77,17 @@ export async function CataloguePage({
             >
               {chip.label}
             </Link>
+          ))}
+          {soon.map((c) => (
+            <span
+              key={c.id}
+              aria-disabled="true"
+              title="Coming soon"
+              className="chip shrink-0 cursor-not-allowed border-dashed opacity-45"
+            >
+              {c.label}
+              <span className="ml-2 text-[0.65rem] uppercase tracking-[0.18em] text-gold-light">Soon</span>
+            </span>
           ))}
         </nav>
       </Rise>

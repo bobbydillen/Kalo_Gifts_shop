@@ -127,7 +127,7 @@ async function ProductPageContent({ params }: Pick<PageProps<"/product/[slug]">,
         </nav>
 
         <ProductColourProvider first={product.colours[0]?.name}>
-        <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-16">
+        <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-16">
           {/* Picture. Stays in view on wide screens while the details scroll. */}
           {garment ? (
             // no rise-in here: the garment arrives from the rail instead

@@ -9,8 +9,8 @@ import type { Category } from "@/lib/catalog";
 const cards: { title: string; line: string; pill: string; glow: string; art: Category }[] = [
   { title: "Family", line: "For the people who feel like home.", pill: "Matching sets", glow: "#a3282a", art: "hoodie" },
   { title: "Friends", line: "For the ones who always show up.", pill: "Little thank-yous", glow: "#a8823f", art: "tshirt" },
-  { title: "Church", line: "For the community that carries you.", pill: "Give together", glow: "#1b4436", art: "tote" },
-  { title: "Secret Santa", line: "For a small surprise, well chosen.", pill: "Easy on the pocket", glow: "#c23a36", art: "keychain" },
+  { title: "Church", line: "For the community that carries you.", pill: "Give together", glow: "#1b4436", art: "frame" },
+  { title: "Secret Santa", line: "For a small surprise, well chosen.", pill: "Easy on the pocket", glow: "#c23a36", art: "bottle" },
 ];
 
 /** "Gifts for every loved one": a row of large cards that scrolls sideways. */

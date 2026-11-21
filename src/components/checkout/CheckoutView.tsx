@@ -17,9 +17,10 @@ import { describePart } from "@/lib/hamper";
 import { shippingFee } from "@/lib/shipping";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useCustomer } from "@/lib/use-customer";
+import { ONLINE_PAY_KEY, openCashfree } from "@/lib/cashfree-checkout";
+import { UPI_PAY_KEY } from "@/lib/upi";
 
-const field =
-  "mt-2 block w-full rounded-xl border border-hair-2 bg-pine px-4 py-3 text-cream placeholder:text-faint focus:border-gold focus:outline-none";
+const field = "mt-2 block w-full rounded-xl border border-hair-2 bg-pine px-4 py-3 text-cream placeholder:text-faint focus:border-gold focus:outline-none";
 
 /** The checkout: contact and address on one side, the order summary on the other. */
 export function CheckoutView() {
@@ -41,11 +42,14 @@ export function CheckoutView() {
   const [pincode, setPincode] = useState("");
   const [note, setNote] = useState("");
   const [area, setArea] = useState(""); // the local area chosen from the pincode's own list
-  const [payment, setPayment] = useState<PaymentChoice>("test");
+  const [payment, setPayment] = useState<PaymentChoice>(settings.onlinePayments ? "online" : settings.upiId ? "upi" : "test");
 
   // The pincode decides the city, state and local areas, so they cannot be made up.
   type Lookup = { status: "idle" } | { status: "loading" } | PincodeResult;
-  const [looked, setLooked] = useState<{ pin: string; result: PincodeResult } | null>(null);
+  const [looked, setLooked] = useState<{
+    pin: string;
+    result: PincodeResult;
+  } | null>(null);
   const validPin = /^[1-9]\d{5}$/.test(pincode);
   const lookup: Lookup = !validPin ? { status: "idle" } : looked?.pin === pincode ? looked.result : { status: "loading" };
   const found = lookup.status === "found" ? lookup.info : null;
@@ -120,9 +124,29 @@ export function CheckoutView() {
   const total = subtotal + (delivery ?? 0);
   const unavailable = lines.some((l) => l.left <= 0);
 
-  // Cash on delivery only for plain orders; if the bag changes so it no longer qualifies, fall back to the test order
+  // Cash on delivery only for plain orders; if the bag changes so it no longer qualifies, fall back
+  // to paying online, UPI (when the shop has a UPI ID) or, before payments are set up, the test order.
+  // The test order is hidden once online payment is on.
   const codReason = codBlocker(lines, total);
-  const method: PaymentChoice = payment === "cod" && !codReason ? "cod" : "test";
+  const onlineOn = settings.onlinePayments;
+  const upiOn = Boolean(settings.upiId);
+  const fallback: PaymentChoice = onlineOn ? "online" : upiOn ? "upi" : "test";
+  const method: PaymentChoice =
+    payment === "cod"
+      ? codReason
+        ? fallback
+        : "cod"
+      : payment === "online"
+        ? onlineOn
+          ? "online"
+          : fallback
+        : payment === "upi"
+          ? upiOn
+            ? "upi"
+            : fallback
+          : onlineOn
+            ? fallback
+            : "test";
 
   if (!settings.checkoutOpen && !placed) {
     return (
@@ -167,7 +191,17 @@ export function CheckoutView() {
     }
     const fullLine2 = [area, line2.trim()].filter(Boolean).join(", ");
     const details = validateDetails(
-      { phone, email, name, line1, line2: fullLine2, city: resolvedCity, state: resolvedState, pincode, note },
+      {
+        phone,
+        email,
+        name,
+        line1,
+        line2: fullLine2,
+        city: resolvedCity,
+        state: resolvedState,
+        pincode,
+        note,
+      },
       { trustedPlace: lookup.status === "found" },
     );
     if (!details.ok) {
@@ -192,7 +226,13 @@ export function CheckoutView() {
           wrap: l.wrap,
           note: l.note,
           photo: l.photo?.path,
-          parts: l.parts?.map((p) => ({ slug: p.slug, colour: p.colour, size: p.size, qty: p.qty, photo: p.photo?.path })),
+          parts: l.parts?.map((p) => ({
+            slug: p.slug,
+            colour: p.colour,
+            size: p.size,
+            qty: p.qty,
+            photo: p.photo?.path,
+          })),
         })),
       });
       if (!result.ok) {
@@ -211,9 +251,50 @@ export function CheckoutView() {
       } catch {
         // storage blocked: the order still goes through, only the ad report is skipped
       }
+      if (method === "upi") {
+        try {
+          // what the pay screen needs; the phone stays in this browser tab, never in the address
+          sessionStorage.setItem(
+            UPI_PAY_KEY,
+            JSON.stringify({
+              number: result.number,
+              total: result.total,
+              phone: details.value.phone,
+            }),
+          );
+        } catch {
+          // storage blocked: the pay screen still shows the UPI ID and amount from the address
+        }
+      }
+      if (method === "online") {
+        try {
+          sessionStorage.setItem(
+            ONLINE_PAY_KEY,
+            JSON.stringify({
+              number: result.number,
+              total: result.total,
+              phone: details.value.phone,
+            }),
+          );
+        } catch {
+          // storage blocked: a failed payment is then sorted out on WhatsApp
+        }
+        setPlaced(true);
+        clear();
+        if (result.session) {
+          try {
+            await openCashfree(result.session);
+            return;
+          } catch {
+            // the payment page did not load: the order page offers to try again
+          }
+        }
+        router.push(`/order-placed?n=${result.number}&pay=online`);
+        return;
+      }
       setPlaced(true);
       clear();
-      router.push(`/order-placed?n=${result.number}`);
+      router.push(method === "upi" ? `/order-placed?n=${result.number}&pay=upi&a=${result.total}` : `/order-placed?n=${result.number}`);
     });
   }
 
@@ -242,11 +323,7 @@ export function CheckoutView() {
                   className={`${field} !mt-0 ${customer.phone ? "opacity-70" : ""}`}
                 />
               </div>
-              <span className="mt-1 block text-xs text-faint">
-                {customer.phone
-                  ? "Verified."
-                  : "We will update you on WhatsApp about your order."}
-              </span>
+              <span className="mt-1 block text-xs text-faint">{customer.phone ? "Verified." : "We will update you on WhatsApp about your order."}</span>
             </label>
             <label className="block text-sm text-mist sm:col-span-2">
               Email
@@ -366,11 +443,26 @@ export function CheckoutView() {
 
             <label className="block text-sm text-mist sm:col-span-2">
               House or flat number and street
-              <input required autoComplete="address-line1" maxLength={200} value={line1} onChange={(e) => setLine1(e.target.value)} placeholder="For example: Flat 502, Akshaya The Belvedere, NH 4" className={field} />
+              <input
+                required
+                autoComplete="address-line1"
+                maxLength={200}
+                value={line1}
+                onChange={(e) => setLine1(e.target.value)}
+                placeholder="For example: Flat 502, Akshaya The Belvedere, NH 4"
+                className={field}
+              />
             </label>
             <label className="block text-sm text-mist sm:col-span-2">
               Landmark <span className="text-faint">(optional)</span>
-              <input autoComplete="address-line2" maxLength={150} value={line2} onChange={(e) => setLine2(e.target.value)} placeholder="Near the temple, opposite the bus stop" className={field} />
+              <input
+                autoComplete="address-line2"
+                maxLength={150}
+                value={line2}
+                onChange={(e) => setLine2(e.target.value)}
+                placeholder="Near the temple, opposite the bus stop"
+                className={field}
+              />
             </label>
             <label className="block text-sm text-mist sm:col-span-2">
               Note for delivery <span className="text-faint">(optional)</span>
@@ -384,12 +476,30 @@ export function CheckoutView() {
             How to <em>pay</em>
           </legend>
           <div className="mt-5 grid gap-3">
-            <PayOption
-              checked={method === "test"}
-              onSelect={() => setPayment("test")}
-              title="Test order"
-              text="Places the order without taking any payment. Online payment is coming very soon."
-            />
+            {onlineOn && (
+              <PayOption
+                checked={method === "online"}
+                onSelect={() => setPayment("online")}
+                title="Pay online"
+                text="UPI (Google Pay, PhonePe, Paytm), cards, net banking or wallets, on Cashfree's secure payment page."
+              />
+            )}
+            {upiOn && (
+              <PayOption
+                checked={method === "upi"}
+                onSelect={() => setPayment("upi")}
+                title="Pay by UPI"
+                text="Pay from Google Pay, PhonePe, Paytm or any UPI app, right after placing the order. No extra charge."
+              />
+            )}
+            {!onlineOn && (
+              <PayOption
+                checked={method === "test"}
+                onSelect={() => setPayment("test")}
+                title="Test order"
+                text="Places the order without taking any payment. Online payment is coming very soon."
+              />
+            )}
             <PayOption
               checked={method === "cod"}
               disabled={Boolean(codReason)}
@@ -411,7 +521,9 @@ export function CheckoutView() {
               <li key={line.id} className="flex gap-4 py-4">
                 <span
                   className="grid size-16 shrink-0 place-items-center rounded-xl"
-                  style={{ background: `radial-gradient(circle at 50% 42%, color-mix(in srgb, ${line.product.tint} 60%, transparent), var(--color-pine-2) 80%)` }}
+                  style={{
+                    background: `radial-gradient(circle at 50% 42%, color-mix(in srgb, ${line.product.tint} 60%, transparent), var(--color-pine-2) 80%)`,
+                  }}
                 >
                   {line.photo ? (
                     // eslint-disable-next-line @next/next/no-img-element -- a small saved preview of the customer's photo
@@ -454,14 +566,10 @@ export function CheckoutView() {
             </div>
             <div className="flex justify-between text-mist">
               <dt>Delivery</dt>
-              <dd className="tabular-nums">
-                {delivery === null ? "Choose your state" : delivery === 0 ? "Free" : formatPrice(delivery)}
-              </dd>
+              <dd className="tabular-nums">{delivery === null ? "Choose your state" : delivery === 0 ? "Free" : formatPrice(delivery)}</dd>
             </div>
             {delivery !== null && delivery > 0 && subtotal < settings.freeShippingOver && (
-              <p className="text-xs text-faint">
-                Add {formatPrice(settings.freeShippingOver - subtotal)} more for free delivery.
-              </p>
+              <p className="text-xs text-faint">Add {formatPrice(settings.freeShippingOver - subtotal)} more for free delivery.</p>
             )}
             <div className="flex justify-between pt-2 font-serif text-3xl">
               <dt>Total</dt>
@@ -476,19 +584,45 @@ export function CheckoutView() {
           )}
 
           <button type="submit" disabled={pending} className="btn btn-gold mt-6 w-full disabled:opacity-60">
-            {pending ? "Placing your order…" : method === "cod" ? `Place order · pay ${formatPrice(total)} on delivery` : `Place test order · ${formatPrice(total)}`}
+            {pending
+              ? method === "online"
+                ? "Opening the payment page…"
+                : "Placing your order…"
+              : method === "online"
+                ? `Place order · pay ${formatPrice(total)}`
+                : method === "cod"
+                  ? `Place order · pay ${formatPrice(total)} on delivery`
+                  : method === "upi"
+                    ? `Place order · pay ${formatPrice(total)} by UPI`
+                    : `Place test order · ${formatPrice(total)}`}
           </button>
           <p className="mt-3 text-xs text-faint">
             By placing your order you agree to our{" "}
-            <Link href="/policies/terms" className="underline underline-offset-4 hover:text-cream">terms</Link>,{" "}
-            <Link href="/policies/privacy" className="underline underline-offset-4 hover:text-cream">privacy policy</Link>,{" "}
-            <Link href="/policies/shipping" className="underline underline-offset-4 hover:text-cream">shipping</Link> and{" "}
-            <Link href="/policies/returns" className="underline underline-offset-4 hover:text-cream">returns</Link> policies.
+            <Link href="/policies/terms" className="underline underline-offset-4 hover:text-cream">
+              terms
+            </Link>
+            ,{" "}
+            <Link href="/policies/privacy" className="underline underline-offset-4 hover:text-cream">
+              privacy policy
+            </Link>
+            ,{" "}
+            <Link href="/policies/shipping" className="underline underline-offset-4 hover:text-cream">
+              shipping
+            </Link>{" "}
+            and{" "}
+            <Link href="/policies/returns" className="underline underline-offset-4 hover:text-cream">
+              returns
+            </Link>{" "}
+            policies.
           </p>
           <p className="mt-3 text-center text-xs text-faint">
-            {method === "cod"
-              ? "We will message you on WhatsApp to confirm your order. You pay the courier in cash when it arrives."
-              : "A test order is not charged. We will message you on WhatsApp to confirm it."}
+            {method === "online"
+              ? "You pay on Cashfree's secure page next. Your order is confirmed as soon as the payment goes through."
+              : method === "cod"
+                ? "We will message you on WhatsApp to confirm your order. You pay the courier in cash when it arrives."
+                : method === "upi"
+                  ? "Next you will see a button for your UPI app (or a QR code to scan). We confirm your order on WhatsApp once the payment reaches us."
+                  : "A test order is not charged. We will message you on WhatsApp to confirm it."}
           </p>
           <Link href="/gifts" className="mt-4 block text-center text-sm text-mist underline underline-offset-4 hover:text-cream">
             Keep shopping
@@ -518,7 +652,7 @@ function PayOption({ checked, disabled, onSelect, title, text }: { checked: bool
 function Notice({ title, text }: { title: React.ReactNode; text: string }) {
   return (
     <div className="mx-auto max-w-xl py-16 text-center">
-      <h1 className="text-[clamp(2.5rem,6vw,4.5rem)]">{title}</h1>
+      <h2 className="text-[clamp(2.5rem,6vw,4.5rem)]">{title}</h2>
       <p className="mt-6 text-lg text-mist">{text}</p>
       <Link href="/gifts" className="btn btn-gold mt-10">
         Browse gifts

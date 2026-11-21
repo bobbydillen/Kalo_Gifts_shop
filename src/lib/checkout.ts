@@ -35,12 +35,12 @@ export type OrderLineInput = {
 };
 
 /** "test" is a test order (no real payment); until the payment gateway is added it is the other way to order. */
-export type PaymentChoice = "test" | "cod";
+export type PaymentChoice = "test" | "cod" | "upi" | "online";
 
 export type PlaceOrderInput = CheckoutDetails & { items: OrderLineInput[]; expectedTotal: number; payment: PaymentChoice };
 
 /** How an order's payment method is shown in the admin, emails and reports. */
-export const paymentLabel = (m: string | null | undefined) => (m === "cod" ? "Cash on delivery" : m === "test" ? "Test order" : "Prepaid");
+export const paymentLabel = (m: string | null | undefined) => (m === "cod" ? "Cash on delivery" : m === "test" ? "Test order" : m === "upi" ? "UPI" : m === "prepaid" ? "Paid online" : "Prepaid");
 
 /** Cash on delivery is only for plain orders up to this amount (the database checks it again). */
 export const COD_MAX = 1500;

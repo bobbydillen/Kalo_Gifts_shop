@@ -53,7 +53,7 @@ export function GarmentGallery({ slug, name, tag, photos }: { slug: string; name
     <div>
       <div className="relative aspect-[4/5]">
         {/* a soft warm light behind the garment, fading into the page (no box) */}
-        <div aria-hidden="true" className="pointer-events-none absolute -inset-[8%] bg-[radial-gradient(ellipse_50%_46%_at_50%_48%,rgba(255,236,200,0.16),rgba(255,236,200,0.05)_45%,transparent_70%)]" />
+        <div aria-hidden="true" className="pointer-events-none absolute -inset-y-[8%] inset-x-0 bg-[radial-gradient(ellipse_50%_46%_at_50%_48%,rgba(255,236,200,0.16),rgba(255,236,200,0.05)_45%,transparent_70%)]" />
         {tag && (
           <span className="absolute left-0 top-2 z-20 rounded-full border border-hair-2 bg-night/50 px-3 py-1.5 text-[0.625rem] uppercase tracking-[0.2em] text-gold-light backdrop-blur">
             {tag}

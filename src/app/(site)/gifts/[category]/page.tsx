@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CataloguePage } from "@/components/product/CataloguePage";
@@ -18,7 +19,14 @@ export async function generateMetadata({ params }: PageProps<"/gifts/[category]"
   const category = categoryBySlug((await params).category);
   if (!category) return {};
   const seo = await seoFor(categoryKey(category.slug), { title: category.seoTitle, description: category.seoDescription });
-  return { title: seo.title, description: seo.description, alternates: { canonical: `/gifts/${category.slug}` } };
+  // a category with nothing on sale yet is a "coming soon" page, kept out of search results
+  const empty = !(await getProducts()).some((p) => p.category === category.id);
+  return {
+    title: seo.title,
+    description: seo.description,
+    alternates: { canonical: `/gifts/${category.slug}` },
+    ...(empty ? { robots: { index: false, follow: true } } : {}),
+  };
 }
 
 /** The address is read inside Suspense so moving between pages stays instant. */
@@ -35,6 +43,20 @@ async function CategoryPageContent({ params }: Pick<PageProps<"/gifts/[category]
   if (!category) notFound();
   const products = await getProducts();
   const { productsIn } = createCatalog(products);
+  if (productsIn(category.id).length === 0) {
+    return (
+      <section className="mx-auto max-w-2xl px-4 py-28 text-center sm:px-6 lg:py-40">
+        <p className="kicker">Coming soon</p>
+        <h1 className="mt-6 text-[clamp(2.75rem,7vw,5rem)]">{category.label}</h1>
+        <p className="mx-auto mt-6 max-w-md text-lg text-mist">
+          We are still making these. For now, have a look at our T-shirts, hoodies, bottles, frames and hampers.
+        </p>
+        <Link href="/gifts" className="btn btn-gold mt-10">
+          See all gifts
+        </Link>
+      </section>
+    );
+  }
   // tees and hoodies hang on one rail together, this page's own pieces first
   const wear = category.id === "tshirt" || category.id === "hoodie" ? products.filter(isGarment) : [];
   const rail = [...wear.filter((p) => p.category === category.id), ...wear.filter((p) => p.category !== category.id)];

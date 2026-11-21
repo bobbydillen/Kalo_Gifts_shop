@@ -80,7 +80,14 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
                       <span className="block text-sm text-faint">{order.ship_phone}</span>
                     </td>
                     <td className="px-3 py-4 tabular-nums">{items}</td>
-                    <td className="px-3 py-4 text-right tabular-nums text-gold-light">{formatPrice(order.total)}</td>
+                    <td className="px-3 py-4 text-right tabular-nums text-gold-light">
+                      {formatPrice(order.total)}
+                      {order.payment_method === "upi" && (
+                        <span className={`block text-xs ${order.payment_status === "paid" ? "text-faint" : "text-gold"}`}>
+                          {order.payment_status === "paid" ? "UPI · paid" : "UPI · to check"}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-5 py-4">
                       <StatusBadge status={order.status} />
                     </td>

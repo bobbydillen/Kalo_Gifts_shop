@@ -22,7 +22,7 @@ export const STATIC_PAGES: SeoPage[] = [
     defaults: {
       title: "Christian gifts: Bible verse tees, bottles, hampers and more",
       description:
-        "Shop Christian gifts online in India: Bible verse T-shirts and hoodies, printed water bottles, keychains, personalised photo frames and gift hampers for Christmas and every occasion.",
+        "Shop Christian gifts online in India: Bible verse T-shirts and hoodies, printed water bottles, verse and personalised photo frames and gift hampers for Christmas and every occasion.",
     },
   },
   {
@@ -32,7 +32,7 @@ export const STATIC_PAGES: SeoPage[] = [
     defaults: {
       title: "Christian Christmas gifts and hampers",
       description:
-        "Christian Christmas gifts and Christmas hampers: Bible verse tees, bottles and keepsakes, gift wrapped with a handwritten card. Build your own Christmas hamper. Delivered across India.",
+        "Christian Christmas gifts and Christmas hampers: Bible verse tees, hoodies, bottles and verse frames, gift wrapped with a handwritten card. Build your own Christmas hamper. Delivered across India.",
     },
   },
   {

@@ -92,6 +92,8 @@
     color-scheme: dark;
     scroll-behavior: smooth;
     scroll-padding-top: 6rem;
+    /* phones (iOS Safari above all) can pan sideways past wide decorations unless the page itself clips them */
+    overflow-x: clip;
   }
 
   body {

@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
+import { onlinePaymentReady } from "@/lib/cashfree";
 import { parseSettings, type SiteSettings } from "@/lib/settings";
 
 /**
@@ -19,5 +20,7 @@ export async function getSettings(): Promise<SiteSettings> {
   );
   const { data, error } = await supabase.from("site_settings").select("key, value");
   if (error) throw new Error(`Could not load the settings: ${error.message}`);
-  return parseSettings(data);
+  const settings = parseSettings(data);
+  // "Pay online" shows only where the server also has the Cashfree keys
+  return { ...settings, onlinePayments: settings.onlinePayments && onlinePaymentReady() };
 }

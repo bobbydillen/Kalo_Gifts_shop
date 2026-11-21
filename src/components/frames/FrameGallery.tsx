@@ -28,7 +28,7 @@ export function FrameGallery({ product }: { product: Product }) {
         {view === "wall" ? (
           <>
             {/* the framed print on its own, with a soft warm light behind it (no box) */}
-            <div aria-hidden="true" className="pointer-events-none absolute -inset-[8%] bg-[radial-gradient(ellipse_50%_46%_at_50%_48%,rgba(255,236,200,0.16),rgba(255,236,200,0.05)_45%,transparent_70%)]" />
+            <div aria-hidden="true" className="pointer-events-none absolute -inset-y-[8%] inset-x-0 bg-[radial-gradient(ellipse_50%_46%_at_50%_48%,rgba(255,236,200,0.16),rgba(255,236,200,0.05)_45%,transparent_70%)]" />
             <div className="absolute inset-x-[10%] top-[4%]">
               <span className="relative block animate-[frame-settle_2.4s_ease-out]" style={{ transformOrigin: "50% 0%" }}>
                 <FramedPrint art={art} colour={colour} share={share} alt={alt} eager />

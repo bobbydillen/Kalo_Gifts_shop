@@ -32,7 +32,9 @@ export type SiteSettings = {
   gstin: string; // optional
   grievanceOfficer: string; // name of the person who handles complaints
   customerLogin: boolean; // sign-in by text message and the Account page
+  onlinePayments: boolean; // "Pay online" through Cashfree at checkout (needs the Cashfree keys on the server)
   metaPixelId: string; // Meta (Facebook and Instagram) Pixel ID, digits only; empty means no tracking
+  upiId: string; // the shop's business UPI ID; empty hides "Pay by UPI" at checkout
 };
 
 export const DEFAULT_SETTINGS: SiteSettings = {
@@ -57,7 +59,9 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   gstin: "",
   grievanceOfficer: "",
   customerLogin: false, // off until the SMS provider is set up and tested
+  onlinePayments: false, // off until the Cashfree keys are set and a sandbox payment is tested
   metaPixelId: "",
+  upiId: "",
 };
 
 /** Database key for each setting. */
@@ -83,7 +87,9 @@ export const SETTING_KEYS: Record<keyof SiteSettings, string> = {
   gstin: "gstin",
   grievanceOfficer: "grievance_officer",
   customerLogin: "customer_login",
+  onlinePayments: "online_payments",
   metaPixelId: "meta_pixel_id",
+  upiId: "upi_id",
 };
 
 const isDate = (v: unknown): v is string => typeof v === "string" && !Number.isNaN(Date.parse(v));
@@ -121,7 +127,7 @@ export function validateSettings(
 ): { ok: true; value: SiteSettings } | { ok: false; error: string } {
   const fail = (error: string) => ({ ok: false as const, error });
 
-  for (const name of ["snowfall", "countdown", "christmasHero", "orderByBanner", "checkoutOpen", "customerLogin"] as const) {
+  for (const name of ["snowfall", "countdown", "christmasHero", "orderByBanner", "checkoutOpen", "customerLogin", "onlinePayments"] as const) {
     if (typeof raw?.[name] !== "boolean") return fail("A switch has an invalid value.");
   }
   for (const name of ["orderByDate", "christmasDate"] as const) {
@@ -143,6 +149,9 @@ export function validateSettings(
   }
   if (typeof raw.metaPixelId !== "string" || (raw.metaPixelId.trim() && !/^\d{10,20}$/.test(raw.metaPixelId.trim()))) {
     return fail("The Meta Pixel ID is a number of 15 or 16 digits. Copy it from Meta Events Manager, or leave it empty.");
+  }
+  if (typeof raw.upiId !== "string" || (raw.upiId.trim() && !/^[a-zA-Z0-9._-]{2,256}@[a-zA-Z][a-zA-Z0-9]{1,63}$/.test(raw.upiId.trim()))) {
+    return fail("The UPI ID looks wrong. It has the form name@bank, for example kalogifts@ybl. Copy it from your business UPI app, or leave it empty.");
   }
   const whole = (v: unknown, min: number, max: number) => Number.isInteger(v) && (v as number) >= min && (v as number) <= max;
   if (!whole(raw.giftWrapPrice, 0, 5000)) return fail("Gift wrap price must be a whole number of rupees, 0 to 5000.");
@@ -166,6 +175,7 @@ export function validateSettings(
       gstin: raw.gstin.trim().toUpperCase(),
       grievanceOfficer: raw.grievanceOfficer.trim(),
       metaPixelId: raw.metaPixelId.trim(),
+      upiId: raw.upiId.trim(),
     },
   };
 }

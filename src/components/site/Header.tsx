@@ -131,7 +131,7 @@ export function Header() {
       <div
         id="phone-menu"
         inert={!open}
-        className={`fixed inset-0 z-30 bg-night/95 backdrop-blur-xl transition-[opacity,visibility] duration-500 lg:hidden ${
+        className={`fixed inset-0 z-[38] bg-night/95 backdrop-blur-xl transition-[opacity,visibility] duration-500 lg:hidden ${
           open ? "visible opacity-100" : "invisible opacity-0"
         }`}
       >

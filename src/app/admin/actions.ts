@@ -16,6 +16,25 @@ export type ActionResult = { ok: true } | { ok: false; error: string };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
+ * Marks a UPI order's payment as received, once the money is seen in the bank, and notes it in the
+ * order's history. Only an admin can update orders.
+ */
+export async function markPaymentReceived(id: string): Promise<ActionResult> {
+  if (!UUID.test(id)) return { ok: false, error: "That order could not be found." };
+  const supabase = await supabaseServer();
+  const { data: updated, error } = await supabase
+    .from("orders")
+    .update({ payment_status: "paid" })
+    .eq("id", id)
+    .eq("payment_status", "pending")
+    .select("status");
+  if (error || !updated?.length) return { ok: false, error: "The payment could not be marked. Reload and try again." };
+  await supabase.from("order_events").insert({ order_id: id, status: updated[0].status, note: "UPI payment received" });
+  revalidatePath("/admin", "layout");
+  return { ok: true };
+}
+
+/**
  * Changes an order's status, records it in the order's history, and saves the
  * courier or tracking note. The database's rules only let an admin do this: for anyone
  * else the update touches no rows and this returns an error.

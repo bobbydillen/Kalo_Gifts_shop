@@ -1,4 +1,6 @@
 import { SettingsForm } from "@/components/admin/SettingsForm";
+import { cashfreeConfig } from "@/lib/cashfree";
+import { onlinePaymentReady } from "@/lib/online-payment";
 import { parseSettings } from "@/lib/settings";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -19,7 +21,7 @@ export default async function SettingsPage() {
         </p>
       ) : (
         <div className="mt-8">
-          <SettingsForm initial={parseSettings(data ?? [])} />
+          <SettingsForm initial={parseSettings(data ?? [])} cashfree={{ ready: onlinePaymentReady(), mode: cashfreeConfig()?.mode ?? null }} />
         </div>
       )}
     </div>

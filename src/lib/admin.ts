@@ -53,6 +53,8 @@ export type OrderRow = {
   customer_note: string;
   customer_email: string | null;
   payment_method: string;
+  /** The UPI reference (UTR) the customer sent after paying by UPI. */
+  payment_ref: string | null;
   shiprocket_order_id: string | null;
   awb_code: string | null;
   courier_name: string | null;
@@ -108,6 +110,8 @@ export function confirmationMessage(order: {
         ? `It is cash on delivery, so please keep ${total} ready for the courier.`
         : order.payment_method === "test"
           ? ""
+          : order.payment_method === "upi"
+            ? `Please pay ${total} by UPI, with the note "KALO order ${order.number}", and send us the UPI reference here.`
           : "We will share how to pay right here.";
   return [
     `Hi ${name}, thank you for your order at KALO Gifts!`,

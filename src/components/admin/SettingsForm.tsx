@@ -56,7 +56,7 @@ function Section({ title, hint, children }: { title: ReactNode; hint?: string; c
 }
 
 /** Editor for the Christmas switches, dates and gift prices. */
-export function SettingsForm({ initial }: { initial: SiteSettings }) {
+export function SettingsForm({ initial, cashfree }: { initial: SiteSettings; cashfree: { ready: boolean; mode: "sandbox" | "production" | null } }) {
   const [pending, start] = useTransition();
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -78,6 +78,8 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
   const [gstin, setGstin] = useState(initial.gstin);
   const [grievance, setGrievance] = useState(initial.grievanceOfficer);
   const [metaPixelId, setMetaPixelId] = useState(initial.metaPixelId);
+  const [upiId, setUpiId] = useState(initial.upiId);
+  const [onlinePayments, setOnlinePayments] = useState(initial.onlinePayments);
   const [boxFee, setBoxFee] = useState(String(initial.hamperBoxFee));
   const [hamperDiscount, setHamperDiscount] = useState(String(initial.hamperDiscountPercent));
   const [freeOver, setFreeOver] = useState(String(initial.freeShippingOver));
@@ -120,6 +122,8 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
       gstin,
       grievanceOfficer: grievance,
       metaPixelId,
+      upiId,
+      onlinePayments,
       hamperBoxFee: Number(boxFee),
       hamperDiscountPercent: Number(hamperDiscount),
       freeShippingOver: Number(freeOver),
@@ -329,6 +333,52 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
             <span className="mt-1 block text-xs text-faint">Their name. Customers reach them on the contact details above.</span>
           </label>
         </div>
+      </Section>
+
+      <Section
+        title={
+          <>
+            Online <em>payments</em>
+          </>
+        }
+        hint={
+          cashfree.ready
+            ? cashfree.mode === "production"
+              ? "Cashfree is connected with live keys: payments are real."
+              : "Cashfree is connected with sandbox (test) keys: payments are pretend. Switch CASHFREE_ENV to production with the live keys in Netlify when Cashfree approves the account."
+            : "Cashfree is not connected yet. Add CASHFREE_APP_ID, CASHFREE_SECRET_KEY and SUPABASE_SECRET_KEY in Netlify (Site configuration > Environment variables), then deploy again."
+        }
+      >
+        <Switch
+          on={onlinePayments}
+          onToggle={() => setOnlinePayments(!onlinePayments)}
+          title="Pay online with Cashfree"
+          hint="Checkout offers “Pay online” (UPI, cards, net banking, wallets) and hides the test order. Orders are marked paid by themselves when Cashfree confirms the payment, and the order emails go out then."
+        />
+      </Section>
+
+      <Section
+        title={
+          <>
+            UPI <em>payments</em>
+          </>
+        }
+      >
+        <label className="block text-sm text-mist">
+          Business UPI ID <span className="text-faint">(optional)</span>
+          <input
+            value={upiId}
+            maxLength={120}
+            onChange={(e) => setUpiId(e.target.value.replace(/\s/g, ""))}
+            placeholder="For example kalogifts@ybl"
+            className={field}
+          />
+          <span className="mt-1 block text-xs text-faint">
+            From your business UPI app (for example PhonePe Business). With it, checkout offers “Pay by UPI”: the customer pays this ID the
+            exact amount from their UPI app and enters the reference, and the order waits under “Payment to check” until you mark the money
+            received. Leave empty to hide UPI at checkout.
+          </span>
+        </label>
       </Section>
 
       <Section

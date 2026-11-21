@@ -14,9 +14,10 @@ export const site = {
 
 const baseLinks = [
   { label: "Gifts", href: "/gifts" },
-  { label: "Loved ones", href: "/#loved-ones" },
-  { label: "Hampers", href: "/gifts/hampers" },
+  { label: "Wear", href: "/gifts/t-shirts" },
+  { label: "Bottles", href: "/gifts/bottles" },
   { label: "Photo frames", href: "/gifts/photo-frames" },
+  { label: "Hampers", href: "/gifts/hampers" },
 ];
 
 /** Thin strip above the header. */
@@ -43,5 +44,6 @@ export const navLinksFor = (christmasOn: boolean, accountOn: boolean): NavLink[]
 
 export const footerLinksFor = (christmasOn: boolean, accountOn: boolean): NavLink[] => [
   ...navLinksFor(christmasOn, accountOn),
+  { label: "Loved ones", href: "/#loved-ones" },
   { label: "Our story", href: "/#story" },
 ];

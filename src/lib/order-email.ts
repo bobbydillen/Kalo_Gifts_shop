@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import { getProducts } from "@/lib/catalog-data";
 import { formatPrice } from "@/lib/catalog";
-import { paymentLabel, type CheckoutDetails, type OrderLineInput, type PaymentChoice } from "@/lib/checkout";
+import { type CheckoutDetails, type OrderLineInput, type PaymentChoice } from "@/lib/checkout";
 
 const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -16,11 +16,22 @@ const esc = (s: string) =>
  * in the database and visible in the admin, so it is never affected.
  */
 export async function sendOrderEmails(order: { number: number; total: number }, details: CheckoutDetails, items: OrderLineInput[], payment: PaymentChoice) {
-  const payText = payment === "cod" ? `Cash on delivery: collect ${formatPrice(order.total)} on delivery` : "Test order: nothing to collect";
+  const payText =
+    payment === "cod"
+      ? `Cash on delivery: collect ${formatPrice(order.total)} on delivery`
+      : payment === "upi"
+        ? `UPI: ${formatPrice(order.total)} to check in the bank before confirming (the customer's reference shows on the order in the admin)`
+        : payment === "online"
+          ? `Paid online: ${formatPrice(order.total)} received through Cashfree`
+        : "Test order: nothing to collect";
   const customerPay =
     payment === "cod"
       ? `You chose cash on delivery, so please keep ${formatPrice(order.total)} ready for the courier.`
-      : "This was a test order, so nothing is charged.";
+      : payment === "upi"
+        ? `You chose to pay ${formatPrice(order.total)} by UPI. If you have not paid yet, please pay with the order number #${order.number} in the note. We confirm your order once the payment reaches us.`
+        : payment === "online"
+          ? `We have received your payment of ${formatPrice(order.total)}. Thank you!`
+        : "This was a test order, so nothing is charged.";
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_APP_PASSWORD;
   if (!user || !pass) return;

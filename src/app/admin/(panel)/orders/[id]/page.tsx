@@ -4,6 +4,7 @@ import { OrderControls } from "@/components/admin/OrderControls";
 import { PrintButton } from "@/components/admin/PrintButton";
 import { ShiprocketPanel } from "@/components/admin/ShiprocketPanel";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { UpiPaymentPanel } from "@/components/admin/UpiPaymentPanel";
 import {
   confirmationMessage,
   formatDate,
@@ -74,6 +75,7 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
       </div>
       <p className="mt-2 text-sm text-faint">
         Placed {formatDate(order.created_at)} · {paymentLabel(order.payment_method)} · Payment: {order.payment_status}
+        {order.payment_method === "prepaid" && order.payment_ref ? ` · Cashfree payment ${order.payment_ref}` : ""}
       </p>
       <div className="mt-4 flex flex-wrap gap-3">
         <Link href={`/invoice/${order.id}`} target="_blank" className="btn btn-outline">
@@ -236,6 +238,9 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
         </div>
 
         <div className="space-y-6">
+          {order.payment_method === "upi" && (
+            <UpiPaymentPanel id={order.id} number={order.number} total={order.total} reference={order.payment_ref} status={order.payment_status} />
+          )}
           <section aria-labelledby="update-title" className="rounded-2xl border border-hair bg-pine p-6">
             <h2 id="update-title" className="text-2xl">
               Update <em>order</em>

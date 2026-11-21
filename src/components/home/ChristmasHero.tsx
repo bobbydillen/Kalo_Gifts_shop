@@ -68,7 +68,7 @@ export function ChristmasHero({ placement }: { placement: "page-top" | "section"
               </span>
             </p>
             <p className="mt-4 max-w-md text-lg text-mist">
-              Hampers, cosy layers and small keepsakes, wrapped and ready for the people you love.
+              Hampers, cosy hoodies, verse bottles and frames, wrapped and ready for the people you love.
             </p>
           </Enter>
 

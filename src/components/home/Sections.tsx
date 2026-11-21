@@ -89,7 +89,7 @@ export function Gifting({ index }: { index: number }) {
 const faqs = [
   {
     q: "Do I need to create an account?",
-    a: "No. You check out with your phone number, and your details and orders are kept against it for next time.",
+    a: "No. You check out as a guest with your email address. To see your orders or reuse your last address, sign in with a code we email you. There is no password to remember.",
   },
   {
     q: "Can you gift wrap my order?",
