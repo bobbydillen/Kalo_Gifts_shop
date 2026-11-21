@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useBag } from "@/components/bag/BagProvider";
 import { GiftOptions } from "@/components/bag/GiftOptions";
 import { useCatalog } from "@/components/catalog/CatalogProvider";
 import { HamperPartDialog, type Draft } from "@/components/hamper/HamperPartDialog";
+import { boxPicture, flyToBox, PackBox, type BoxItem } from "@/components/hamper/PackBox";
 import { ProductArt } from "@/components/product/ProductArt";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { categories, formatPrice, fromPrice, type Category, type Product } from "@/lib/catalog";
@@ -31,6 +32,10 @@ export function HamperBuilder() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [round, setRound] = useState(0); // changes after each hamper is added, so the card box starts fresh
+  const [closing, setClosing] = useState(false); // the lid going on while the hamper goes into the bag
+  const tapped = useRef<DOMRect | null>(null); // where the last gift was tapped, so it can fly from there into the box
+  const bigBox = useRef<HTMLDivElement>(null);
+  const smallBox = useRef<HTMLDivElement>(null);
 
   if (!builder) {
     return (
@@ -61,19 +66,37 @@ export function HamperBuilder() {
     const isNew = !drafts.some((d) => d.slug === draft.slug);
     if (isNew && price.distinct >= MAX_HAMPER_PRODUCTS) {
       setMessage(`A hamper can hold up to ${MAX_HAMPER_PRODUCTS} different products.`);
-      return;
+      return false;
     }
     setDrafts((current) => {
       const same = current.find((d) => !d.photo && !draft.photo && d.slug === draft.slug && d.colour === draft.colour && d.size === draft.size);
       if (same) return current.map((d) => (d === same ? { ...d, qty: Math.min(MAX_PART_QTY, d.qty + draft.qty) } : d));
       return [...current, draft];
     });
+    return true;
   }
 
   // every product opens its details first, so the customer can see the pictures and description before adding it
-  function choose(product: Product) {
+  function choose(product: Product, from: Element) {
+    tapped.current = (from.querySelector("[data-card-picture]") ?? from).getBoundingClientRect();
     setConfiguring(product);
   }
+
+  // the gift flies from its card into whichever box is on screen (the small one in the phone's top bar, or the big one)
+  function fly(draft: Draft) {
+    const product = catalog.productBySlug(draft.slug);
+    if (!product) return;
+    const picture = boxPicture(product, draft.colour, draft.photo?.thumb);
+    const src = picture.kind === "img" ? picture.src : picture.kind === "frame" ? picture.art : null;
+    const small = smallBox.current;
+    const target = small && small.getBoundingClientRect().width > 0 ? small : bigBox.current;
+    flyToBox(tapped.current, target, src);
+  }
+
+  const boxItems: BoxItem[] = drafts.flatMap((d) => {
+    const product = catalog.productBySlug(d.slug);
+    return product ? [{ key: d.key, picture: boxPicture(product, d.colour, d.photo?.thumb), label: product.name }] : [];
+  });
 
   async function addHamper() {
     if (!ready || !builder) return;
@@ -95,10 +118,16 @@ export function HamperBuilder() {
       }
       parts.push({ slug: d.slug, colour: d.colour, size: d.size, qty: d.qty, photo });
     }
+    // the lid goes on and the bow is tied before the hamper goes into the bag
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setClosing(true);
+      await new Promise((r) => setTimeout(r, 1400));
+    }
     add({ slug: builder.slug, parts, note });
     setDrafts([]);
     setNote("");
     setRound((r) => r + 1);
+    setClosing(false);
     setBusy(false);
   }
 
@@ -115,9 +144,12 @@ export function HamperBuilder() {
 
       <a
         href="#your-hamper"
-        className="sticky top-[4.25rem] z-20 mt-6 flex items-center justify-between rounded-full border border-hair-2 bg-pine/90 px-5 py-3 text-sm backdrop-blur lg:hidden"
+        className="sticky top-[4.25rem] z-20 mt-6 flex items-center gap-3 rounded-2xl border border-hair-2 bg-pine/90 py-1.5 pl-2 pr-5 text-sm backdrop-blur lg:hidden"
       >
-        <span>
+        <span className="w-[4.5rem] shrink-0">
+          <PackBox items={boxItems} closing={closing} small boxRef={smallBox} />
+        </span>
+        <span className="flex-1">
           {price.distinct} of {MIN_HAMPER_PRODUCTS}+ chosen
         </span>
         <span className="text-gold-light">{formatPrice(price.total)} ↓</span>
@@ -153,13 +185,14 @@ export function HamperBuilder() {
                   <li key={p.slug}>
                     <button
                       type="button"
-                      onClick={() => choose(p)}
+                      onClick={(e) => choose(p, e.currentTarget)}
                       aria-label={`See ${p.name} and add it to your hamper`}
                       className={`group relative block w-full overflow-hidden rounded-2xl border bg-pine text-left transition-[border-color,transform] duration-500 ease-bounce hover:-translate-y-0.5 ${
                         count ? "border-gold" : "border-hair hover:border-gold"
                       }`}
                     >
                       <span
+                        data-card-picture
                         className="grid aspect-square place-items-center overflow-hidden"
                         style={{ background: `radial-gradient(circle at 50% 42%, color-mix(in srgb, ${p.tint} 65%, transparent), var(--color-pine-2) 75%)` }}
                       >
@@ -193,6 +226,9 @@ export function HamperBuilder() {
 
         <aside id="your-hamper" className="scroll-mt-28 lg:sticky lg:top-28 lg:self-start" aria-labelledby="hamper-title">
           <div className="rounded-[24px] border border-hair bg-pine p-6">
+            <div className="mx-auto mb-6 max-w-sm px-2 pt-10">
+              <PackBox items={boxItems} closing={closing} boxRef={bigBox} />
+            </div>
             <h2 id="hamper-title" className="font-serif text-3xl">
               Your <em>hamper</em>
             </h2>
@@ -216,8 +252,17 @@ export function HamperBuilder() {
                         // eslint-disable-next-line @next/next/no-img-element -- a small preview of the customer's own photo
                         <img src={d.photo.thumb} alt="Your photo" className="size-12 shrink-0 rounded-lg object-cover" />
                       ) : (
-                        <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-pine-2">
-                          <ProductArt category={product.category} className="w-6 text-gold-light" />
+                        <span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-pine-2">
+                          {(() => {
+                            const pic = boxPicture(product, d.colour);
+                            const src = pic.kind === "img" ? pic.src : pic.kind === "frame" ? pic.art : null;
+                            return src ? (
+                              // eslint-disable-next-line @next/next/no-img-element -- a small picture of the chosen gift
+                              <img src={src} alt="" className="size-full object-contain p-1" />
+                            ) : (
+                              <ProductArt category={product.category} className="w-6 text-gold-light" />
+                            );
+                          })()}
                         </span>
                       )}
                       <span className="min-w-0 flex-1">
@@ -279,7 +324,7 @@ export function HamperBuilder() {
             )}
 
             <button type="button" onClick={addHamper} disabled={!ready || busy} className="btn btn-gold mt-5 w-full disabled:pointer-events-none disabled:opacity-55">
-              {busy ? "Saving your photos…" : ready ? `Add hamper to bag · ${formatPrice(price.total + cardCost)}` : `Choose ${missing} more gift${missing === 1 ? "" : "s"}`}
+              {closing ? "Packing your hamper…" : busy ? "Saving your photos…" : ready ? `Add hamper to bag · ${formatPrice(price.total + cardCost)}` : `Choose ${missing} more gift${missing === 1 ? "" : "s"}`}
             </button>
             <p className="mt-3 text-xs text-faint">Delivery is worked out at checkout, and is free on orders of {formatPrice(settings.freeShippingOver)} or more.</p>
           </div>
@@ -292,8 +337,8 @@ export function HamperBuilder() {
           product={configuring}
           onClose={() => setConfiguring(null)}
           onAdd={(draft) => {
-            addDraft(draft);
             setConfiguring(null);
+            if (addDraft(draft)) fly(draft);
           }}
         />
       )}
